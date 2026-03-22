@@ -1,0 +1,52 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Ganesha.API/Dockerfile
+    container_name: ganesha-api
+    ports:
+      - "${APP_PORT:-5000}:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_URLS: http://+:80
+      Tenants__emagine__ConnectionString: ${EMAGINE_CONNECTION_STRING}
+      Tenants__emagine__JwtSecret: ${EMAGINE_JWT_SECRET}
+      Tenants__emagine__BucketName: ${GANESHA_BUCKET_NAME}
+      Tenants__monexup__ConnectionString: ${MONEXUP_CONNECTION_STRING}
+      Tenants__monexup__JwtSecret: ${MONEXUP_JWT_SECRET}
+      Tenants__monexup__BucketName: ${GANESHA_BUCKET_NAME}
+      NAuth__ApiURL: ${NAUTH_API_URL}
+      NAuth__BucketName: ${NAUTH_BUCKET_NAME}
+      NAuth__JwtSecret: ${EMAGINE_JWT_SECRET}
+      zTools__ApiURL: ${ZTOOLS_API_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - emagine-network
+
+  db:
+    image: postgres:17-alpine
+    container_name: ganesha-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - emagine-network
+
+volumes:
+  postgres_data:
+
+networks:
+  emagine-network:
+    external: true

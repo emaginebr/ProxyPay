@@ -1,0 +1,52 @@
+meta {
+  name: Admin - My Products
+  type: graphql
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/graphql/admin
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:graphql {
+  {
+    myProducts(skip: 0, take: 10) {
+      items {
+        productId
+        name
+        slug
+        price
+        image
+        imageUrl
+        status
+        featured
+        description
+        store {
+          storeId
+          name
+        }
+        category {
+          categoryId
+          name
+        }
+        productImages {
+          imageId
+          image
+          imageUrl
+          sortOrder
+        }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+      }
+      totalCount
+    }
+  }
+}

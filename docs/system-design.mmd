@@ -1,0 +1,87 @@
+%% Diagram: Ganesha System Architecture
+%% Type: Flowchart
+%% Updated: 2026-03-22
+
+flowchart TD
+    client([Client / Browser])
+
+    subgraph api["Ganesha.API"]
+        controllers["Controllers\n(Store, Invoice)"]
+        swagger["Swagger / OpenAPI"]
+        startup_api["Startup\n(Auth, CORS, Tenant)"]
+    end
+
+    subgraph graphql["Ganesha.GraphQL"]
+        public_gql["Public Schema\n(/graphql)\nstores, storeBySlug"]
+        admin_gql["Admin Schema\n(/graphql/admin)\nmyStores, myInvoices"]
+        type_ext["Type Extensions\n(logoUrl, invoice items)"]
+    end
+
+    subgraph app["Ganesha.Application"]
+        di["DI Bootstrap\n(ConfigureGanesha)"]
+        tenant["TenantResolver\n(Multi-Tenant)"]
+    end
+
+    subgraph domain["Ganesha.Domain"]
+        services["Services\n(Store, Invoice)"]
+        models["Models\n(Store, Invoice, InvoiceItem)"]
+        core["Core\n(LogCore, Utils)"]
+    end
+
+    subgraph nuget["Ganesha (Shared Package)"]
+        dto["DTO\n(Store, Invoice,\nSettings, Enums)"]
+        acl["ACL\n(StoreClient)"]
+    end
+
+    subgraph infra_ifaces["Ganesha.Infra.Interfaces"]
+        repo_ifaces["Repository Interfaces\n(IStoreRepository,\nIInvoiceRepository,\nIInvoiceItemRepository)"]
+        uow_iface["IUnitOfWork"]
+    end
+
+    subgraph infra["Ganesha.Infra"]
+        context["GaneshaContext\n(EF Core 9)"]
+        repos["Repositories\n(Store, Invoice, InvoiceItem)"]
+        uow["UnitOfWork"]
+    end
+
+    subgraph external["External Services"]
+        nauth["NAuth\n(Authentication)"]
+        stripe["Stripe\n(Payments)"]
+        aws["AWS S3\n(File Storage)"]
+        ztools["zTools\n(AI, Mail, Files)"]
+    end
+
+    db[(PostgreSQL 17)]
+
+    client -->|"REST"| controllers
+    client -->|"GraphQL"| public_gql
+    client -->|"GraphQL + Auth"| admin_gql
+    startup_api -->|"configures"| di
+    di -->|"registers"| services
+    di -->|"registers"| repos
+    controllers -->|"uses"| services
+    public_gql -->|"queries"| context
+    admin_gql -->|"queries"| context
+    type_ext -->|"resolves"| aws
+    services -->|"uses"| repo_ifaces
+    services -->|"uses"| dto
+    services -->|"maps"| models
+    infra -->|"implements"| infra_ifaces
+    repos -->|"queries"| context
+    context -->|"Npgsql"| db
+    acl -->|"HTTP calls"| nauth
+    services -->|"payments"| stripe
+    services -->|"file upload"| aws
+    controllers -->|"auth validation"| nauth
+    acl -->|"uses"| dto
+    tenant -->|"resolves"| context
+
+    style api fill:#4A90D9,stroke:#2C5F8A,color:#fff
+    style graphql fill:#E535AB,stroke:#B02888,color:#fff
+    style app fill:#7B68EE,stroke:#5A4CBE,color:#fff
+    style domain fill:#50C878,stroke:#3A9A5C,color:#fff
+    style nuget fill:#FF8C00,stroke:#CC7000,color:#fff
+    style infra_ifaces fill:#DDA0DD,stroke:#AA70AA,color:#333
+    style infra fill:#CD853F,stroke:#A0682F,color:#fff
+    style external fill:#FF6B6B,stroke:#CC5555,color:#fff
+    style db fill:#336791,stroke:#264D6E,color:#fff

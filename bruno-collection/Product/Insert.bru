@@ -1,0 +1,31 @@
+meta {
+  name: Insert
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/product/:storeSlug/insert
+  body: json
+  auth: bearer
+}
+
+params:path {
+  storeSlug: loja-exemplo
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "categoryId": 1,
+    "name": "Produto Exemplo",
+    "description": "Descrição do produto",
+    "price": 99.90,
+    "frequency": 0,
+    "limit": 0,
+    "status": 0
+  }
+}

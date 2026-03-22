@@ -1,0 +1,18 @@
+meta {
+  name: Search
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/product/search
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "userSlug": "",
+    "networkSlug": ""
+  }
+}

@@ -1,0 +1,39 @@
+meta {
+  name: Public - Featured Products
+  type: graphql
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/graphql
+  body: graphql
+  auth: none
+}
+
+body:graphql {
+  {
+    featuredProducts(storeSlug: "minha-loja", skip: 0, take: 10) {
+      items {
+        productId
+        name
+        slug
+        price
+        image
+        imageUrl
+        description
+        featured
+        productImages {
+          imageId
+          image
+          imageUrl
+          sortOrder
+        }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+      }
+      totalCount
+    }
+  }
+}

@@ -1,0 +1,32 @@
+meta {
+  name: Update
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/product/:storeSlug/update
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  storeSlug: minha-loja
+}
+
+body:json {
+  {
+    "productId": 1,
+    "categoryId": 1,
+    "name": "Produto Atualizado",
+    "description": "Descrição atualizada",
+    "price": 149.90,
+    "frequency": 0,
+    "limit": 0,
+    "status": 0
+  }
+}

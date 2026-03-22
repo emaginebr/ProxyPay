@@ -1,0 +1,25 @@
+meta {
+  name: Insert
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/storeUser/:storeSlug/insert
+  body: json
+  auth: bearer
+}
+
+params:path {
+  storeSlug: loja-atualizada
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "userId": 2
+  }
+}

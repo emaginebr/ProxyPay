@@ -1,0 +1,26 @@
+meta {
+  name: Update
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/category/:storeSlug/update
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+params:path {
+  storeSlug: minha-loja
+}
+
+body:json {
+  {
+    "categoryId": 1,
+    "name": "Categoria Atualizada"
+  }
+}

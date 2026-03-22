@@ -1,0 +1,22 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Ganesha.API/Dockerfile
+    container_name: ganesha-api
+    restart: unless-stopped
+    expose:
+      - "80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:80
+      Tenants__emagine__ConnectionString: ${EMAGINE_CONNECTION_STRING}
+      Tenants__emagine__JwtSecret: ${EMAGINE_JWT_SECRET}
+      Tenants__monexup__ConnectionString: ${MONEXUP_CONNECTION_STRING}
+      Tenants__monexup__JwtSecret: ${MONEXUP_JWT_SECRET}
+    networks:
+      - emagine-network
+
+networks:
+  emagine-network:
+    external: true
