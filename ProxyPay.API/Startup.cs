@@ -20,6 +20,7 @@ using ProxyPay.API.Filters;
 using ProxyPay.GraphQL;
 using NAuth.DTO.Settings;
 using zTools.DTO.Settings;
+using ProxyPay.DTO.Settings;
 
 namespace ProxyPay.API
 {
@@ -37,6 +38,7 @@ namespace ProxyPay.API
         {
             services.Configure<NAuthSetting>(Configuration.GetSection("NAuth"));
             services.Configure<zToolsetting>(Configuration.GetSection("zTools"));
+            services.Configure<AbacatePaySetting>(Configuration.GetSection("AbacatePay"));
 
             services.ConfigureProxyPay();
             services.AddProxyPayGraphQL();

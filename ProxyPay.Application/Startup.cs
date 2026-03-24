@@ -16,6 +16,8 @@ using ProxyPay.ACL;
 using ProxyPay.ACL.Handlers;
 using ProxyPay.ACL.Interfaces;
 using ProxyPay.Domain;
+using ProxyPay.Infra.Interfaces.AppServices;
+using ProxyPay.Infra.AppServices;
 using Microsoft.Extensions.Configuration;
 using NAuth.ACL;
 using NAuth.ACL.Interfaces;
@@ -66,6 +68,10 @@ namespace ProxyPay.Application
             injectDependency(typeof(IDocumentClient), typeof(DocumentClient), services, scoped);
             injectDependency(typeof(IInvoiceClient), typeof(InvoiceClient), services, scoped);
             injectDependency(typeof(ITransactionClient), typeof(TransactionClient), services, scoped);
+            #endregion
+
+            #region AppService
+            injectDependency(typeof(IAbacatePayAppService), typeof(AbacatePayAppService), services, scoped);
             #endregion
 
             #region Service
