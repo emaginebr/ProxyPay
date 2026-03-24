@@ -2,6 +2,18 @@
 -- PostgreSQL
 -- Generated from EF Core Code First model
 
+CREATE TABLE ganesha_stores (
+    store_id BIGSERIAL NOT NULL,
+    slug VARCHAR(120) NOT NULL,
+    name VARCHAR(120) NOT NULL,
+    owner_id BIGINT NOT NULL,
+    logo VARCHAR(150),
+    status INTEGER NOT NULL DEFAULT 1,
+    CONSTRAINT ganesha_stores_pkey PRIMARY KEY (store_id)
+);
+
+CREATE UNIQUE INDEX ix_ganesha_stores_slug ON ganesha_stores (slug);
+
 CREATE TABLE ganesha_invoices (
     invoice_id BIGSERIAL NOT NULL,
     user_id BIGINT NOT NULL,

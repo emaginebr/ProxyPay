@@ -12,7 +12,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Ganesha.ACL;
 using Ganesha.ACL.Handlers;
+using Ganesha.ACL.Interfaces;
 using Ganesha.Domain;
 using Microsoft.Extensions.Configuration;
 using NAuth.ACL;
@@ -62,12 +64,13 @@ namespace Ganesha.Application
             injectDependency(typeof(IFileClient), typeof(FileClient), services, scoped);
             injectDependency(typeof(IStringClient), typeof(StringClient), services, scoped);
             injectDependency(typeof(IDocumentClient), typeof(DocumentClient), services, scoped);
+            injectDependency(typeof(IInvoiceClient), typeof(InvoiceClient), services, scoped);
+            injectDependency(typeof(ITransactionClient), typeof(TransactionClient), services, scoped);
             #endregion
 
             #region Service
             injectDependency(typeof(IInvoiceService), typeof(InvoiceService), services, scoped);
             injectDependency(typeof(ITransactionService), typeof(TransactionService), services, scoped);
-
             #endregion
 
             services.AddScoped<ITenantSecretProvider, NAuthTenantSecretProvider>();

@@ -1,4 +1,5 @@
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Options;
 using HotChocolate.Types.Pagination;
 using Ganesha.GraphQL.Admin;
 using Ganesha.GraphQL.Types;
@@ -16,15 +17,17 @@ public static class GraphQLServiceExtensions
             .AddDiagnosticEventListener<GraphQLErrorLogger>()
             .AddQueryType<AdminQuery>()
             .AddTypeExtension<InvoiceTypeExtension>()
-            .SetPagingOptions(new PagingOptions
+            .AddTypeExtension<TransactionTypeExtension>()
+            .ModifyPagingOptions(o =>
             {
-                MaxPageSize = 50,
-                DefaultPageSize = 10,
-                IncludeTotalCount = true
+                o.MaxPageSize = 50;
+                o.DefaultPageSize = 10;
+                o.IncludeTotalCount = true;
             })
             .AddProjections()
             .AddFiltering()
-            .AddSorting();
+            .AddSorting()
+            .ModifyCostOptions(o => o.MaxFieldCost = 8000);
 
         return services;
     }

@@ -9,23 +9,36 @@ namespace Ganesha.API.Controllers
     public class GraphQLController : ControllerBase
     {
         /// <summary>
-        /// GraphQL endpoint (POST /graphql).
-        /// Requires authentication. Access the interactive playground at /graphql.
-        /// Supports queries: myInvoices, myTransactions.
+        /// Public GraphQL endpoint (POST /graphql).
+        /// Access the interactive playground at /graphql to explore the schema.
+        /// Supports queries: stores, storeBySlug.
         /// </summary>
-        [HttpPost("graphql")]
-        [Authorize]
+        [HttpPost("public")]
+        [AllowAnonymous]
         [ProducesResponseType(typeof(GraphQLResponse), 200)]
-        public IActionResult GraphQL([FromBody] GraphQLRequest request)
+        public IActionResult PublicGraphQL([FromBody] GraphQLRequest request)
         {
             return Ok(new { message = "Use POST /graphql directly. This endpoint exists for Swagger documentation only." });
+        }
+
+        /// <summary>
+        /// Admin GraphQL endpoint (POST /graphql/admin).
+        /// Requires authentication. Access the interactive playground at /graphql/admin.
+        /// Supports queries: myStores, myInvoices, myTransactions.
+        /// </summary>
+        [HttpPost("admin")]
+        [Authorize]
+        [ProducesResponseType(typeof(GraphQLResponse), 200)]
+        public IActionResult AdminGraphQL([FromBody] GraphQLRequest request)
+        {
+            return Ok(new { message = "Use POST /graphql/admin directly. This endpoint exists for Swagger documentation only." });
         }
     }
 
     public class GraphQLRequest
     {
         /// <summary>GraphQL query string</summary>
-        /// <example>{ myInvoices { items { invoiceId invoiceNumber total } } }</example>
+        /// <example>{ stores { storeId name logoUrl } }</example>
         public string Query { get; set; }
 
         /// <summary>Operation name (optional, for multi-operation documents)</summary>
