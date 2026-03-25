@@ -1,5 +1,5 @@
+using AutoMapper;
 using ProxyPay.Domain.Interfaces;
-using ProxyPay.Domain.Mappers;
 using ProxyPay.DTO.Transaction;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,26 +15,29 @@ namespace ProxyPay.API.Controllers
     {
         private readonly IUserClient _userClient;
         private readonly ITransactionService _transactionService;
+        private readonly IMapper _mapper;
 
         public TransactionController(
             IUserClient userClient,
-            ITransactionService transactionService
+            ITransactionService transactionService,
+            IMapper mapper
         )
         {
             _userClient = userClient;
             _transactionService = transactionService;
+            _mapper = mapper;
         }
 
         [Authorize]
-        [HttpPost("insert")]
-        public async Task<ActionResult<TransactionInfo>> Insert([FromBody] TransactionInsertInfo transaction)
+        [HttpPost("{storeId}/insert")]
+        public async Task<ActionResult<TransactionInfo>> Insert(long storeId, [FromBody] TransactionInsertInfo transaction)
         {
             var userSession = _userClient.GetUserInSession(HttpContext);
             if (userSession == null)
                 return Unauthorized();
 
-            var newTransaction = await _transactionService.InsertAsync(transaction, userSession.UserId);
-            return Ok(TransactionMapper.ToInfo(newTransaction));
+            var newTransaction = await _transactionService.InsertAsync(transaction, storeId);
+            return Ok(_mapper.Map<TransactionInfo>(newTransaction));
         }
 
         [Authorize]
@@ -45,22 +48,22 @@ namespace ProxyPay.API.Controllers
             if (userSession == null)
                 return Unauthorized();
 
-            var transaction = await _transactionService.GetByIdAsync(transactionId, userSession.UserId);
+            var transaction = await _transactionService.GetByIdAsync(transactionId);
             if (transaction == null)
                 return NotFound("Transaction not found");
 
-            return Ok(TransactionMapper.ToInfo(transaction));
+            return Ok(_mapper.Map<TransactionInfo>(transaction));
         }
 
         [Authorize]
-        [HttpGet("balance")]
-        public async Task<ActionResult<BalanceInfo>> Balance()
+        [HttpGet("{storeId}/balance")]
+        public async Task<ActionResult<BalanceInfo>> Balance(long storeId)
         {
             var userSession = _userClient.GetUserInSession(HttpContext);
             if (userSession == null)
                 return Unauthorized();
 
-            return Ok(await _transactionService.GetBalanceAsync(userSession.UserId));
+            return Ok(await _transactionService.GetBalanceAsync(storeId));
         }
     }
 }

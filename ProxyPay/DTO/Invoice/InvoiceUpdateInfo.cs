@@ -14,8 +14,6 @@ namespace ProxyPay.DTO.Invoice
         public InvoiceStatusEnum Status { get; set; }
         [JsonPropertyName("discount")]
         public double Discount { get; set; }
-        [JsonPropertyName("tax")]
-        public double Tax { get; set; }
         [JsonPropertyName("dueDate")]
         public DateTime DueDate { get; set; }
         [JsonPropertyName("items")]

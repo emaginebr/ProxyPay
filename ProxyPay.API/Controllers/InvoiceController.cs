@@ -25,14 +25,14 @@ namespace ProxyPay.API.Controllers
         }
 
         [Authorize]
-        [HttpPost("insert")]
-        public async Task<ActionResult<InvoiceInfo>> Insert([FromBody] InvoiceInsertInfo invoice)
+        [HttpPost("{storeId}/insert")]
+        public async Task<ActionResult<InvoiceInfo>> Insert(long storeId, [FromBody] InvoiceInsertInfo invoice)
         {
             var userSession = _userClient.GetUserInSession(HttpContext);
             if (userSession == null)
                 return Unauthorized();
 
-            var newInvoice = await _invoiceService.InsertAsync(invoice, userSession.UserId);
+            var newInvoice = await _invoiceService.InsertAsync(invoice, storeId);
             return Ok(await _invoiceService.GetInvoiceInfoAsync(newInvoice));
         }
 
@@ -44,19 +44,19 @@ namespace ProxyPay.API.Controllers
             if (userSession == null)
                 return Unauthorized();
 
-            var updated = await _invoiceService.UpdateAsync(invoice, userSession.UserId);
+            var updated = await _invoiceService.UpdateAsync(invoice);
             return Ok(await _invoiceService.GetInvoiceInfoAsync(updated));
         }
 
         [Authorize]
-        [HttpGet("list")]
-        public async Task<ActionResult<IList<InvoiceInfo>>> List()
+        [HttpGet("{storeId}/list")]
+        public async Task<ActionResult<IList<InvoiceInfo>>> List(long storeId)
         {
             var userSession = _userClient.GetUserInSession(HttpContext);
             if (userSession == null)
                 return Unauthorized();
 
-            return Ok(await _invoiceService.ListByUserAsync(userSession.UserId));
+            return Ok(await _invoiceService.ListByStoreAsync(storeId));
         }
 
         [Authorize]
@@ -67,7 +67,7 @@ namespace ProxyPay.API.Controllers
             if (userSession == null)
                 return Unauthorized();
 
-            var invoice = await _invoiceService.GetByIdAsync(invoiceId, userSession.UserId);
+            var invoice = await _invoiceService.GetByIdAsync(invoiceId);
             if (invoice == null)
                 return NotFound("Invoice not found");
 
@@ -82,7 +82,7 @@ namespace ProxyPay.API.Controllers
             if (userSession == null)
                 return Unauthorized();
 
-            await _invoiceService.DeleteAsync(invoiceId, userSession.UserId);
+            await _invoiceService.DeleteAsync(invoiceId);
             return Ok();
         }
     }

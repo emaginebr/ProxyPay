@@ -1,6 +1,6 @@
+using AutoMapper;
 using ProxyPay.Infra.Interfaces.Repository;
 using ProxyPay.Infra.Context;
-using ProxyPay.Infra.Mappers;
 using ProxyPay.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -12,18 +12,19 @@ namespace ProxyPay.Infra.Repository
     public class TransactionRepository : ITransactionRepository<TransactionModel>
     {
         private readonly ProxyPayContext _context;
+        private readonly IMapper _mapper;
         private const int TYPE_CREDIT = 1;
         private const int TYPE_DEBIT = 2;
 
-        public TransactionRepository(ProxyPayContext context)
+        public TransactionRepository(ProxyPayContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public async Task<TransactionModel> InsertAsync(TransactionModel model)
         {
-            var row = new Transaction();
-            TransactionDbMapper.ToEntity(model, row);
+            var row = _mapper.Map<Transaction>(model);
             _context.Add(row);
             await _context.SaveChangesAsync();
             model.TransactionId = row.TransactionId;
@@ -35,22 +36,22 @@ namespace ProxyPay.Infra.Repository
             var row = await _context.Transactions.FindAsync(id);
             if (row == null)
                 return null;
-            return TransactionDbMapper.ToModel(row);
+            return _mapper.Map<TransactionModel>(row);
         }
 
-        public async Task<IEnumerable<TransactionModel>> ListByUserAsync(long userId)
+        public async Task<IEnumerable<TransactionModel>> ListByStoreAsync(long storeId)
         {
             var rows = await _context.Transactions
-                .Where(x => x.UserId == userId)
+                .Where(x => x.StoreId == storeId)
                 .OrderByDescending(x => x.CreatedAt)
                 .ToListAsync();
-            return rows.Select(TransactionDbMapper.ToModel);
+            return rows.Select(r => _mapper.Map<TransactionModel>(r));
         }
 
-        public async Task<double> GetBalanceByUserAsync(long userId)
+        public async Task<double> GetBalanceByStoreAsync(long storeId)
         {
             var lastTransaction = await _context.Transactions
-                .Where(x => x.UserId == userId)
+                .Where(x => x.StoreId == storeId)
                 .OrderByDescending(x => x.CreatedAt)
                 .ThenByDescending(x => x.TransactionId)
                 .FirstOrDefaultAsync();
@@ -58,24 +59,24 @@ namespace ProxyPay.Infra.Repository
             return lastTransaction?.Balance ?? 0;
         }
 
-        public async Task<double> GetTotalCreditsByUserAsync(long userId)
+        public async Task<double> GetTotalCreditsByStoreAsync(long storeId)
         {
             return await _context.Transactions
-                .Where(x => x.UserId == userId && x.Type == TYPE_CREDIT)
+                .Where(x => x.StoreId == storeId && x.Type == TYPE_CREDIT)
                 .SumAsync(x => x.Amount);
         }
 
-        public async Task<double> GetTotalDebitsByUserAsync(long userId)
+        public async Task<double> GetTotalDebitsByStoreAsync(long storeId)
         {
             return await _context.Transactions
-                .Where(x => x.UserId == userId && x.Type == TYPE_DEBIT)
+                .Where(x => x.StoreId == storeId && x.Type == TYPE_DEBIT)
                 .SumAsync(x => x.Amount);
         }
 
-        public async Task<int> GetCountByUserAsync(long userId)
+        public async Task<int> GetCountByStoreAsync(long storeId)
         {
             return await _context.Transactions
-                .Where(x => x.UserId == userId)
+                .Where(x => x.StoreId == storeId)
                 .CountAsync();
         }
     }

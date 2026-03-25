@@ -23,6 +23,7 @@ using NAuth.ACL;
 using NAuth.ACL.Interfaces;
 using zTools.ACL.Interfaces;
 using zTools.ACL;
+using ProxyPay.Infra.Mappers;
 
 namespace ProxyPay.Application
 {
@@ -47,6 +48,10 @@ namespace ProxyPay.Application
             services.AddTransient<TenantHeaderHandler>();
             #endregion
 
+            #region AutoMapper
+            services.AddAutoMapper(typeof(InvoiceProfile), typeof(TransactionProfile), typeof(CustomerProfile), typeof(StoreProfile), typeof(BillingProfile));
+            #endregion
+
             #region Infra
             injectDependency(typeof(IUnitOfWork), typeof(UnitOfWork), services, scoped);
             injectDependency(typeof(ILogCore), typeof(LogCore), services, scoped);
@@ -56,6 +61,9 @@ namespace ProxyPay.Application
             injectDependency(typeof(IInvoiceRepository<InvoiceModel>), typeof(InvoiceRepository), services, scoped);
             injectDependency(typeof(IInvoiceItemRepository<InvoiceItemModel>), typeof(InvoiceItemRepository), services, scoped);
             injectDependency(typeof(ITransactionRepository<TransactionModel>), typeof(TransactionRepository), services, scoped);
+            injectDependency(typeof(ICustomerRepository<CustomerModel>), typeof(CustomerRepository), services, scoped);
+            injectDependency(typeof(IStoreRepository<StoreModel>), typeof(StoreRepository), services, scoped);
+            injectDependency(typeof(IBillingRepository<BillingModel>), typeof(BillingRepository), services, scoped);
             #endregion
 
             #region Client
@@ -77,6 +85,9 @@ namespace ProxyPay.Application
             #region Service
             injectDependency(typeof(IInvoiceService), typeof(InvoiceService), services, scoped);
             injectDependency(typeof(ITransactionService), typeof(TransactionService), services, scoped);
+            injectDependency(typeof(ICustomerService), typeof(CustomerService), services, scoped);
+            injectDependency(typeof(IStoreService), typeof(StoreService), services, scoped);
+            injectDependency(typeof(IBillingService), typeof(BillingService), services, scoped);
             #endregion
 
             services.AddScoped<ITenantSecretProvider, NAuthTenantSecretProvider>();

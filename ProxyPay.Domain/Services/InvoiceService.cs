@@ -1,5 +1,5 @@
+using AutoMapper;
 using ProxyPay.Infra.Interfaces.Repository;
-using ProxyPay.Domain.Mappers;
 using ProxyPay.Domain.Models;
 using ProxyPay.Domain.Interfaces;
 using ProxyPay.DTO.Invoice;
@@ -14,39 +14,35 @@ namespace ProxyPay.Domain.Services
     {
         private readonly IInvoiceRepository<InvoiceModel> _invoiceRepository;
         private readonly IInvoiceItemRepository<InvoiceItemModel> _invoiceItemRepository;
+        private readonly IMapper _mapper;
 
         public InvoiceService(
             IInvoiceRepository<InvoiceModel> invoiceRepository,
-            IInvoiceItemRepository<InvoiceItemModel> invoiceItemRepository
+            IInvoiceItemRepository<InvoiceItemModel> invoiceItemRepository,
+            IMapper mapper
         )
         {
             _invoiceRepository = invoiceRepository;
             _invoiceItemRepository = invoiceItemRepository;
+            _mapper = mapper;
         }
 
-        public async Task<InvoiceModel> GetByIdAsync(long invoiceId, long userId)
+        public async Task<InvoiceModel> GetByIdAsync(long invoiceId)
         {
-            var model = await _invoiceRepository.GetByIdAsync(invoiceId);
-            if (model == null)
-                return null;
-
-            if (model.UserId != userId)
-                throw new UnauthorizedAccessException("Access denied: invoice does not belong to this user");
-
-            return model;
+            return await _invoiceRepository.GetByIdAsync(invoiceId);
         }
 
         public async Task<InvoiceInfo> GetInvoiceInfoAsync(InvoiceModel model)
         {
-            var info = InvoiceMapper.ToInfo(model);
+            var info = _mapper.Map<InvoiceInfo>(model);
             var items = await _invoiceItemRepository.ListByInvoiceAsync(model.InvoiceId);
-            info.Items = items.Select(InvoiceItemMapper.ToInfo).ToList();
+            info.Items = items.Select(i => _mapper.Map<InvoiceItemInfo>(i)).ToList();
             return info;
         }
 
-        public async Task<IList<InvoiceInfo>> ListByUserAsync(long userId)
+        public async Task<IList<InvoiceInfo>> ListByStoreAsync(long storeId)
         {
-            var invoices = await _invoiceRepository.ListByUserAsync(userId);
+            var invoices = await _invoiceRepository.ListByStoreAsync(storeId);
             var result = new List<InvoiceInfo>();
             foreach (var invoice in invoices)
             {
@@ -60,78 +56,46 @@ namespace ProxyPay.Domain.Services
             return (quantity * unitPrice) - discount;
         }
 
-        public async Task<InvoiceModel> InsertAsync(InvoiceInsertInfo invoice, long userId)
+        public async Task<InvoiceModel> InsertAsync(InvoiceInsertInfo invoice, long storeId)
         {
             if (invoice.Items == null || !invoice.Items.Any())
                 throw new Exception("Invoice must have at least one item");
 
-            var invoiceNumber = await _invoiceRepository.GenerateInvoiceNumberAsync(userId);
+            var invoiceNumber = await _invoiceRepository.GenerateInvoiceNumberAsync(storeId);
 
-            double subTotal = 0;
-            foreach (var item in invoice.Items)
-            {
-                subTotal += CalculateItemTotal(item.Quantity, item.UnitPrice, item.Discount);
-            }
-
-            var model = new InvoiceModel
-            {
-                UserId = userId,
-                InvoiceNumber = invoiceNumber,
-                Notes = invoice.Notes,
-                Status = InvoiceStatusEnum.Draft,
-                SubTotal = subTotal,
-                Discount = invoice.Discount,
-                Tax = invoice.Tax,
-                Total = subTotal - invoice.Discount + invoice.Tax,
-                DueDate = invoice.DueDate,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
-            };
+            var model = _mapper.Map<InvoiceModel>(invoice);
+            model.StoreId = storeId;
+            model.InvoiceNumber = invoiceNumber;
+            model.Status = InvoiceStatusEnum.Draft;
+            model.CreatedAt = DateTime.Now;
+            model.UpdatedAt = DateTime.Now;
 
             var savedInvoice = await _invoiceRepository.InsertAsync(model);
 
             foreach (var item in invoice.Items)
             {
-                var itemModel = new InvoiceItemModel
-                {
-                    InvoiceId = savedInvoice.InvoiceId,
-                    Description = item.Description,
-                    Quantity = item.Quantity,
-                    UnitPrice = item.UnitPrice,
-                    Discount = item.Discount,
-                    Total = CalculateItemTotal(item.Quantity, item.UnitPrice, item.Discount),
-                    CreatedAt = DateTime.Now
-                };
+                var itemModel = _mapper.Map<InvoiceItemModel>(item);
+                itemModel.InvoiceId = savedInvoice.InvoiceId;
+                itemModel.Total = CalculateItemTotal(item.Quantity, item.UnitPrice, item.Discount);
+                itemModel.CreatedAt = DateTime.Now;
                 await _invoiceItemRepository.InsertAsync(itemModel);
             }
 
             return savedInvoice;
         }
 
-        public async Task<InvoiceModel> UpdateAsync(InvoiceUpdateInfo invoice, long userId)
+        public async Task<InvoiceModel> UpdateAsync(InvoiceUpdateInfo invoice)
         {
             var existing = await _invoiceRepository.GetByIdAsync(invoice.InvoiceId);
             if (existing == null)
                 throw new Exception("Invoice not found");
 
-            if (existing.UserId != userId)
-                throw new UnauthorizedAccessException("Access denied: invoice does not belong to this user");
-
             if (invoice.Items == null || !invoice.Items.Any())
                 throw new Exception("Invoice must have at least one item");
 
-            double subTotal = 0;
-            foreach (var item in invoice.Items)
-            {
-                subTotal += CalculateItemTotal(item.Quantity, item.UnitPrice, item.Discount);
-            }
-
             existing.Notes = invoice.Notes;
             existing.Status = invoice.Status;
-            existing.SubTotal = subTotal;
             existing.Discount = invoice.Discount;
-            existing.Tax = invoice.Tax;
-            existing.Total = subTotal - invoice.Discount + invoice.Tax;
             existing.DueDate = invoice.DueDate;
             existing.UpdatedAt = DateTime.Now;
 
@@ -144,30 +108,21 @@ namespace ProxyPay.Domain.Services
 
             foreach (var item in invoice.Items)
             {
-                var itemModel = new InvoiceItemModel
-                {
-                    InvoiceId = existing.InvoiceId,
-                    Description = item.Description,
-                    Quantity = item.Quantity,
-                    UnitPrice = item.UnitPrice,
-                    Discount = item.Discount,
-                    Total = CalculateItemTotal(item.Quantity, item.UnitPrice, item.Discount),
-                    CreatedAt = DateTime.Now
-                };
+                var itemModel = _mapper.Map<InvoiceItemModel>(item);
+                itemModel.InvoiceId = existing.InvoiceId;
+                itemModel.Total = CalculateItemTotal(item.Quantity, item.UnitPrice, item.Discount);
+                itemModel.CreatedAt = DateTime.Now;
                 await _invoiceItemRepository.InsertAsync(itemModel);
             }
 
             return updated;
         }
 
-        public async Task DeleteAsync(long invoiceId, long userId)
+        public async Task DeleteAsync(long invoiceId)
         {
             var existing = await _invoiceRepository.GetByIdAsync(invoiceId);
             if (existing == null)
                 throw new Exception("Invoice not found");
-
-            if (existing.UserId != userId)
-                throw new UnauthorizedAccessException("Access denied: invoice does not belong to this user");
 
             await _invoiceItemRepository.DeleteByInvoiceAsync(invoiceId);
             await _invoiceRepository.DeleteAsync(invoiceId);

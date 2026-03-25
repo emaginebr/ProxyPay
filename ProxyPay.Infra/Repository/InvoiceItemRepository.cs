@@ -1,6 +1,6 @@
+using AutoMapper;
 using ProxyPay.Infra.Interfaces.Repository;
 using ProxyPay.Infra.Context;
-using ProxyPay.Infra.Mappers;
 using ProxyPay.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -12,16 +12,17 @@ namespace ProxyPay.Infra.Repository
     public class InvoiceItemRepository : IInvoiceItemRepository<InvoiceItemModel>
     {
         private readonly ProxyPayContext _context;
+        private readonly IMapper _mapper;
 
-        public InvoiceItemRepository(ProxyPayContext context)
+        public InvoiceItemRepository(ProxyPayContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public async Task<InvoiceItemModel> InsertAsync(InvoiceItemModel model)
         {
-            var row = new InvoiceItem();
-            InvoiceItemDbMapper.ToEntity(model, row);
+            var row = _mapper.Map<InvoiceItem>(model);
             _context.Add(row);
             await _context.SaveChangesAsync();
             model.InvoiceItemId = row.InvoiceItemId;
@@ -31,7 +32,7 @@ namespace ProxyPay.Infra.Repository
         public async Task<InvoiceItemModel> UpdateAsync(InvoiceItemModel model)
         {
             var row = await _context.InvoiceItems.FindAsync(model.InvoiceItemId);
-            InvoiceItemDbMapper.ToEntity(model, row);
+            _mapper.Map(model, row);
             _context.InvoiceItems.Update(row);
             await _context.SaveChangesAsync();
             return model;
@@ -42,7 +43,7 @@ namespace ProxyPay.Infra.Repository
             var row = await _context.InvoiceItems.FindAsync(id);
             if (row == null)
                 return null;
-            return InvoiceItemDbMapper.ToModel(row);
+            return _mapper.Map<InvoiceItemModel>(row);
         }
 
         public async Task<IEnumerable<InvoiceItemModel>> ListByInvoiceAsync(long invoiceId)
@@ -50,7 +51,7 @@ namespace ProxyPay.Infra.Repository
             var rows = await _context.InvoiceItems
                 .Where(x => x.InvoiceId == invoiceId)
                 .ToListAsync();
-            return rows.Select(InvoiceItemDbMapper.ToModel);
+            return rows.Select(r => _mapper.Map<InvoiceItemModel>(r));
         }
 
         public async Task DeleteAsync(long id)

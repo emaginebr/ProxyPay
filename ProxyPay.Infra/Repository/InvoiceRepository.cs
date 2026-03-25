@@ -1,6 +1,6 @@
+using AutoMapper;
 using ProxyPay.Infra.Interfaces.Repository;
 using ProxyPay.Infra.Context;
-using ProxyPay.Infra.Mappers;
 using ProxyPay.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -12,16 +12,17 @@ namespace ProxyPay.Infra.Repository
     public class InvoiceRepository : IInvoiceRepository<InvoiceModel>
     {
         private readonly ProxyPayContext _context;
+        private readonly IMapper _mapper;
 
-        public InvoiceRepository(ProxyPayContext context)
+        public InvoiceRepository(ProxyPayContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public async Task<InvoiceModel> InsertAsync(InvoiceModel model)
         {
-            var row = new Invoice();
-            InvoiceDbMapper.ToEntity(model, row);
+            var row = _mapper.Map<Invoice>(model);
             _context.Add(row);
             await _context.SaveChangesAsync();
             model.InvoiceId = row.InvoiceId;
@@ -31,7 +32,7 @@ namespace ProxyPay.Infra.Repository
         public async Task<InvoiceModel> UpdateAsync(InvoiceModel model)
         {
             var row = await _context.Invoices.FindAsync(model.InvoiceId);
-            InvoiceDbMapper.ToEntity(model, row);
+            _mapper.Map(model, row);
             _context.Invoices.Update(row);
             await _context.SaveChangesAsync();
             return model;
@@ -42,7 +43,7 @@ namespace ProxyPay.Infra.Repository
             var row = await _context.Invoices.FindAsync(id);
             if (row == null)
                 return null;
-            return InvoiceDbMapper.ToModel(row);
+            return _mapper.Map<InvoiceModel>(row);
         }
 
         public async Task<InvoiceModel> GetByNumberAsync(string invoiceNumber)
@@ -52,16 +53,16 @@ namespace ProxyPay.Infra.Repository
                 .FirstOrDefaultAsync();
             if (row == null)
                 return null;
-            return InvoiceDbMapper.ToModel(row);
+            return _mapper.Map<InvoiceModel>(row);
         }
 
-        public async Task<IEnumerable<InvoiceModel>> ListByUserAsync(long userId)
+        public async Task<IEnumerable<InvoiceModel>> ListByStoreAsync(long storeId)
         {
             var rows = await _context.Invoices
-                .Where(x => x.UserId == userId)
+                .Where(x => x.StoreId == storeId)
                 .OrderByDescending(x => x.CreatedAt)
                 .ToListAsync();
-            return rows.Select(InvoiceDbMapper.ToModel);
+            return rows.Select(r => _mapper.Map<InvoiceModel>(r));
         }
 
         public async Task DeleteAsync(long id)
@@ -74,12 +75,12 @@ namespace ProxyPay.Infra.Repository
             }
         }
 
-        public async Task<string> GenerateInvoiceNumberAsync(long userId)
+        public async Task<string> GenerateInvoiceNumberAsync(long storeId)
         {
             var count = await _context.Invoices
-                .Where(x => x.UserId == userId)
+                .Where(x => x.StoreId == storeId)
                 .CountAsync();
-            return $"INV-{userId:D4}-{(count + 1):D6}";
+            return $"INV-{storeId:D4}-{(count + 1):D6}";
         }
     }
 }

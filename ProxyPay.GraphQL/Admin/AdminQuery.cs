@@ -16,6 +16,20 @@ public class AdminQuery
     [UseProjection]
     [UseFiltering]
     [UseSorting]
+    public IQueryable<Store> GetMyStores(
+        ProxyPayContext context,
+        IHttpContextAccessor httpContextAccessor,
+        [Service] IUserClient userClient)
+    {
+        var userSession = userClient.GetUserInSession(httpContextAccessor.HttpContext!);
+        var userId = userSession!.UserId;
+        return context.Stores.Where(s => s.UserId == userId);
+    }
+
+    [UseOffsetPaging]
+    [UseProjection]
+    [UseFiltering]
+    [UseSorting]
     public IQueryable<Invoice> GetMyInvoices(
         ProxyPayContext context,
         IHttpContextAccessor httpContextAccessor,
@@ -23,7 +37,8 @@ public class AdminQuery
     {
         var userSession = userClient.GetUserInSession(httpContextAccessor.HttpContext!);
         var userId = userSession!.UserId;
-        return context.Invoices.Where(i => i.UserId == userId);
+        var storeIds = context.Stores.Where(s => s.UserId == userId).Select(s => s.StoreId);
+        return context.Invoices.Where(i => i.StoreId != null && storeIds.Contains(i.StoreId.Value));
     }
 
     [UseProjection]
@@ -35,7 +50,8 @@ public class AdminQuery
     {
         var userSession = userClient.GetUserInSession(httpContextAccessor.HttpContext!);
         var userId = userSession!.UserId;
-        return context.Invoices.Where(i => i.UserId == userId && i.InvoiceNumber == invoiceNumber);
+        var storeIds = context.Stores.Where(s => s.UserId == userId).Select(s => s.StoreId);
+        return context.Invoices.Where(i => i.StoreId != null && storeIds.Contains(i.StoreId.Value) && i.InvoiceNumber == invoiceNumber);
     }
 
     [UseOffsetPaging]
@@ -49,7 +65,8 @@ public class AdminQuery
     {
         var userSession = userClient.GetUserInSession(httpContextAccessor.HttpContext!);
         var userId = userSession!.UserId;
-        return context.Transactions.Where(t => t.UserId == userId);
+        var storeIds = context.Stores.Where(s => s.UserId == userId).Select(s => s.StoreId);
+        return context.Transactions.Where(t => t.StoreId != null && storeIds.Contains(t.StoreId.Value));
     }
 
     [UseProjection]
@@ -60,8 +77,9 @@ public class AdminQuery
     {
         var userSession = userClient.GetUserInSession(httpContextAccessor.HttpContext!);
         var userId = userSession!.UserId;
+        var storeIds = context.Stores.Where(s => s.UserId == userId).Select(s => s.StoreId);
 
-        var transactions = context.Transactions.Where(t => t.UserId == userId);
+        var transactions = context.Transactions.Where(t => t.StoreId != null && storeIds.Contains(t.StoreId.Value));
         var lastTransaction = transactions
             .OrderByDescending(t => t.CreatedAt)
             .ThenByDescending(t => t.TransactionId)
@@ -74,6 +92,21 @@ public class AdminQuery
             TotalDebits = transactions.Where(t => t.Type == 2).Sum(t => t.Amount),
             TransactionCount = transactions.Count()
         };
+    }
+
+    [UseOffsetPaging]
+    [UseProjection]
+    [UseFiltering]
+    [UseSorting]
+    public IQueryable<Customer> GetMyCustomers(
+        ProxyPayContext context,
+        IHttpContextAccessor httpContextAccessor,
+        [Service] IUserClient userClient)
+    {
+        var userSession = userClient.GetUserInSession(httpContextAccessor.HttpContext!);
+        var userId = userSession!.UserId;
+        var storeIds = context.Stores.Where(s => s.UserId == userId).Select(s => s.StoreId);
+        return context.Customers.Where(c => c.StoreId != null && storeIds.Contains(c.StoreId.Value));
     }
 }
 

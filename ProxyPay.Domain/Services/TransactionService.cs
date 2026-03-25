@@ -1,5 +1,5 @@
+using AutoMapper;
 using ProxyPay.Infra.Interfaces.Repository;
-using ProxyPay.Domain.Mappers;
 using ProxyPay.Domain.Models;
 using ProxyPay.Domain.Interfaces;
 using ProxyPay.DTO.Transaction;
@@ -13,33 +13,29 @@ namespace ProxyPay.Domain.Services
     public class TransactionService : ITransactionService
     {
         private readonly ITransactionRepository<TransactionModel> _transactionRepository;
+        private readonly IMapper _mapper;
 
         public TransactionService(
-            ITransactionRepository<TransactionModel> transactionRepository
+            ITransactionRepository<TransactionModel> transactionRepository,
+            IMapper mapper
         )
         {
             _transactionRepository = transactionRepository;
+            _mapper = mapper;
         }
 
-        public async Task<TransactionModel> GetByIdAsync(long transactionId, long userId)
+        public async Task<TransactionModel> GetByIdAsync(long transactionId)
         {
-            var model = await _transactionRepository.GetByIdAsync(transactionId);
-            if (model == null)
-                return null;
-
-            if (model.UserId != userId)
-                throw new UnauthorizedAccessException("Access denied: transaction does not belong to this user");
-
-            return model;
+            return await _transactionRepository.GetByIdAsync(transactionId);
         }
 
-        public async Task<IList<TransactionInfo>> ListByUserAsync(long userId)
+        public async Task<IList<TransactionInfo>> ListByStoreAsync(long storeId)
         {
-            var transactions = await _transactionRepository.ListByUserAsync(userId);
-            return transactions.Select(TransactionMapper.ToInfo).ToList();
+            var transactions = await _transactionRepository.ListByStoreAsync(storeId);
+            return transactions.Select(t => _mapper.Map<TransactionInfo>(t)).ToList();
         }
 
-        public async Task<TransactionModel> InsertAsync(TransactionInsertInfo transaction, long userId)
+        public async Task<TransactionModel> InsertAsync(TransactionInsertInfo transaction, long storeId)
         {
             if (string.IsNullOrEmpty(transaction.Description))
                 throw new Exception("Description is required");
@@ -47,35 +43,28 @@ namespace ProxyPay.Domain.Services
             if (transaction.Amount <= 0)
                 throw new Exception("Amount must be greater than zero");
 
-            var currentBalance = await _transactionRepository.GetBalanceByUserAsync(userId);
+            var currentBalance = await _transactionRepository.GetBalanceByStoreAsync(storeId);
 
             var newBalance = transaction.Type == TransactionTypeEnum.Credit
                 ? currentBalance + transaction.Amount
                 : currentBalance - transaction.Amount;
 
-            var model = new TransactionModel
-            {
-                UserId = userId,
-                InvoiceId = transaction.InvoiceId,
-                Type = transaction.Type,
-                Category = transaction.Category,
-                Description = transaction.Description,
-                Amount = transaction.Amount,
-                Balance = newBalance,
-                CreatedAt = DateTime.Now
-            };
+            var model = _mapper.Map<TransactionModel>(transaction);
+            model.StoreId = storeId;
+            model.Balance = newBalance;
+            model.CreatedAt = DateTime.Now;
 
             return await _transactionRepository.InsertAsync(model);
         }
 
-        public async Task<BalanceInfo> GetBalanceAsync(long userId)
+        public async Task<BalanceInfo> GetBalanceAsync(long storeId)
         {
             return new BalanceInfo
             {
-                Balance = await _transactionRepository.GetBalanceByUserAsync(userId),
-                TotalCredits = await _transactionRepository.GetTotalCreditsByUserAsync(userId),
-                TotalDebits = await _transactionRepository.GetTotalDebitsByUserAsync(userId),
-                TransactionCount = await _transactionRepository.GetCountByUserAsync(userId)
+                Balance = await _transactionRepository.GetBalanceByStoreAsync(storeId),
+                TotalCredits = await _transactionRepository.GetTotalCreditsByStoreAsync(storeId),
+                TotalDebits = await _transactionRepository.GetTotalDebitsByStoreAsync(storeId),
+                TransactionCount = await _transactionRepository.GetCountByStoreAsync(storeId)
             };
         }
     }

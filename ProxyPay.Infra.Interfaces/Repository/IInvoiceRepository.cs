@@ -7,10 +7,10 @@ namespace ProxyPay.Infra.Interfaces.Repository
     {
         Task<TModel> GetByIdAsync(long id);
         Task<TModel> GetByNumberAsync(string invoiceNumber);
-        Task<IEnumerable<TModel>> ListByUserAsync(long userId);
+        Task<IEnumerable<TModel>> ListByStoreAsync(long storeId);
         Task<TModel> InsertAsync(TModel model);
         Task<TModel> UpdateAsync(TModel model);
         Task DeleteAsync(long id);
-        Task<string> GenerateInvoiceNumberAsync(long userId);
+        Task<string> GenerateInvoiceNumberAsync(long storeId);
     }
 }

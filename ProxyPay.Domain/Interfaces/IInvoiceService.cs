@@ -7,11 +7,11 @@ namespace ProxyPay.Domain.Interfaces
 {
     public interface IInvoiceService
     {
-        Task<InvoiceModel> GetByIdAsync(long invoiceId, long userId);
+        Task<InvoiceModel> GetByIdAsync(long invoiceId);
         Task<InvoiceInfo> GetInvoiceInfoAsync(InvoiceModel model);
-        Task<IList<InvoiceInfo>> ListByUserAsync(long userId);
-        Task<InvoiceModel> InsertAsync(InvoiceInsertInfo invoice, long userId);
-        Task<InvoiceModel> UpdateAsync(InvoiceUpdateInfo invoice, long userId);
-        Task DeleteAsync(long invoiceId, long userId);
+        Task<IList<InvoiceInfo>> ListByStoreAsync(long storeId);
+        Task<InvoiceModel> InsertAsync(InvoiceInsertInfo invoice, long storeId);
+        Task<InvoiceModel> UpdateAsync(InvoiceUpdateInfo invoice);
+        Task DeleteAsync(long invoiceId);
     }
 }
