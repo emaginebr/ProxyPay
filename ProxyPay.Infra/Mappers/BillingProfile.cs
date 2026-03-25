@@ -12,13 +12,11 @@ namespace ProxyPay.Infra.Mappers
             // Entity <-> Model (enum <-> int)
             CreateMap<Billing, BillingModel>()
                 .ForMember(d => d.Frequency, opt => opt.MapFrom(s => (BillingFrequencyEnum)s.Frequency))
-                .ForMember(d => d.BillingStrategy, opt => opt.MapFrom(s => (BillingStrategyEnum)s.BillingStrategy))
                 .ForMember(d => d.Status, opt => opt.MapFrom(s => (BillingStatusEnum)s.Status))
                 .ForMember(d => d.Customer, opt => opt.Ignore())
                 .ForMember(d => d.Items, opt => opt.Ignore());
             CreateMap<BillingModel, Billing>()
                 .ForMember(d => d.Frequency, opt => opt.MapFrom(s => (int)s.Frequency))
-                .ForMember(d => d.BillingStrategy, opt => opt.MapFrom(s => (int)s.BillingStrategy))
                 .ForMember(d => d.Status, opt => opt.MapFrom(s => (int)s.Status))
                 .ForMember(d => d.Store, opt => opt.Ignore())
                 .ForMember(d => d.Customer, opt => opt.Ignore())

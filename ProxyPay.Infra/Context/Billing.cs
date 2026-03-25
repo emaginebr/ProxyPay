@@ -13,8 +13,6 @@ public partial class Billing
 
     public int Frequency { get; set; }
 
-    public int BillingStrategy { get; set; }
-
     public DateTime BillingStartDate { get; set; }
 
     public int Status { get; set; }

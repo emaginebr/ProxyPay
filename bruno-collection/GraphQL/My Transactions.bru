@@ -1,0 +1,36 @@
+meta {
+  name: My Transactions
+  type: graphql
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/graphql
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:graphql {
+  {
+    myTransactions(skip: 0, take: 10) {
+      items {
+        transactionId
+        type
+        category
+        description
+        amount
+        balance
+        createdAt
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+      }
+      totalCount
+    }
+  }
+}

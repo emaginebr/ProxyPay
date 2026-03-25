@@ -1,0 +1,33 @@
+meta {
+  name: My Store
+  type: graphql
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/graphql
+  body: graphql
+  auth: bearer
+}
+
+headers {
+  X-Tenant-Id: emagine
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:graphql {
+  {
+    myStore {
+      storeId
+      clientId
+      name
+      email
+      billingStrategy
+      createdAt
+      updatedAt
+    }
+  }
+}

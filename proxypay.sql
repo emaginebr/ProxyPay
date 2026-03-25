@@ -1,6 +1,26 @@
 -- ProxyPay Database Creation Script
 -- PostgreSQL
 -- Generated from EF Core Code First model
+--
+-- Migration: Run this section to update an existing database
+-- ALTER TABLE proxypay_stores ADD COLUMN client_id VARCHAR(32);
+-- UPDATE proxypay_stores SET client_id = md5(random()::text) WHERE client_id IS NULL;
+-- ALTER TABLE proxypay_stores ALTER COLUMN client_id SET NOT NULL;
+-- CREATE UNIQUE INDEX ix_proxypay_stores_client_id ON proxypay_stores (client_id);
+-- ALTER TABLE proxypay_stores ADD COLUMN billing_strategy INTEGER NOT NULL DEFAULT 1;
+-- UPDATE proxypay_billings b SET billing_strategy = 1 WHERE billing_strategy IS NOT NULL;
+-- ALTER TABLE proxypay_billings DROP COLUMN IF EXISTS billing_strategy;
+-- CREATE TABLE IF NOT EXISTS proxypay_billing_items (
+--     billing_item_id BIGSERIAL NOT NULL,
+--     billing_id BIGINT NOT NULL,
+--     description VARCHAR(500) NOT NULL,
+--     quantity INTEGER NOT NULL,
+--     unit_price DOUBLE PRECISION NOT NULL,
+--     discount DOUBLE PRECISION NOT NULL DEFAULT 0,
+--     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+--     CONSTRAINT proxypay_billing_items_pkey PRIMARY KEY (billing_item_id),
+--     CONSTRAINT fk_proxypay_billing_item_billing FOREIGN KEY (billing_id) REFERENCES proxypay_billings (billing_id) ON DELETE CASCADE
+-- );
 
 CREATE TABLE proxypay_stores (
     store_id BIGSERIAL NOT NULL,
@@ -9,6 +29,7 @@ CREATE TABLE proxypay_stores (
     name VARCHAR(240) NOT NULL,
     email VARCHAR(240),
     abacatepay_api_key VARCHAR(500),
+    billing_strategy INTEGER NOT NULL DEFAULT 1,
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     CONSTRAINT proxypay_stores_pkey PRIMARY KEY (store_id)
@@ -67,7 +88,6 @@ CREATE TABLE proxypay_billings (
     store_id BIGINT,
     customer_id BIGINT,
     frequency INTEGER NOT NULL,
-    billing_strategy INTEGER NOT NULL,
     billing_start_date TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     status INTEGER NOT NULL DEFAULT 1,
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,

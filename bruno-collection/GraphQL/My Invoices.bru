@@ -1,0 +1,53 @@
+meta {
+  name: My Invoices
+  type: graphql
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/graphql
+  body: graphql
+  auth: bearer
+}
+
+headers {
+  X-Tenant-Id: emagine
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:graphql {
+  {
+    myInvoices(skip: 0, take: 10) {
+      items {
+        invoiceId
+        invoiceNumber
+        status
+        discount
+        dueDate
+        paidAt
+        createdAt
+        customer {
+          customerId
+          name
+          email
+        }
+        invoiceItems {
+          invoiceItemId
+          description
+          quantity
+          unitPrice
+          discount
+          total
+        }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+      }
+      totalCount
+    }
+  }
+}

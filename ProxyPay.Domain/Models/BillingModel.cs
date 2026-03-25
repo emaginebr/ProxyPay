@@ -11,7 +11,6 @@ namespace ProxyPay.Domain.Models
         public long? StoreId { get; set; }
         public long? CustomerId { get; set; }
         public BillingFrequencyEnum Frequency { get; set; }
-        public BillingStrategyEnum BillingStrategy { get; set; }
         public DateTime BillingStartDate { get; set; }
         public BillingStatusEnum Status { get; set; }
         public DateTime CreatedAt { get; set; }
@@ -57,9 +56,5 @@ namespace ProxyPay.Domain.Models
             Frequency = frequency;
         }
 
-        public void UpdateStrategy(BillingStrategyEnum strategy)
-        {
-            BillingStrategy = strategy;
-        }
     }
 }

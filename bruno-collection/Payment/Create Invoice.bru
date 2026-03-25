@@ -1,0 +1,48 @@
+meta {
+  name: Create Invoice
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/payment/invoice
+  body: json
+  auth: none
+}
+
+headers {
+  X-Tenant-Id: emagine
+}
+
+body:json {
+  {
+    "clientId": "9ab473d655de44aeab6dc20cd0f30a4f",
+    "customer": {
+      "name": "John Doe",
+      "email": "john@example.com",
+      "documentId": "12345678901",
+      "cellphone": "11999999999"
+    },
+    "notes": "Invoice for consulting services",
+    "discount": 0,
+    "dueDate": "2026-04-30T00:00:00",
+    "items": [
+      {
+        "description": "Consulting - 10 hours",
+        "quantity": 10,
+        "unitPrice": 150.00,
+        "discount": 0
+      },
+      {
+        "description": "Setup fee",
+        "quantity": 1,
+        "unitPrice": 500.00,
+        "discount": 50.00
+      }
+    ]
+  }
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:5000
+}

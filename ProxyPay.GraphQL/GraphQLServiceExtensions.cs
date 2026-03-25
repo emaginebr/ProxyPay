@@ -15,6 +15,7 @@ public static class GraphQLServiceExtensions
             .AddGraphQLServer()
             .AddAuthorization()
             .AddDiagnosticEventListener<GraphQLErrorLogger>()
+            .AddErrorFilter<GraphQLErrorFilter>()
             .AddQueryType<AdminQuery>()
             .AddTypeExtension<InvoiceTypeExtension>()
             .AddTypeExtension<TransactionTypeExtension>()

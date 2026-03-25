@@ -1,0 +1,37 @@
+meta {
+  name: Create Billing
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/payment/billing
+  body: json
+  auth: none
+}
+
+headers {
+  X-Tenant-Id: emagine
+}
+
+body:json {
+  {
+    "clientId": "your-store-client-id",
+    "frequency": 1,
+    "billingStartDate": "2026-04-01T00:00:00",
+    "customer": {
+      "name": "John Doe",
+      "email": "john@example.com",
+      "documentId": "12345678901",
+      "cellphone": "11999999999"
+    },
+    "items": [
+      {
+        "description": "Monthly subscription",
+        "quantity": 1,
+        "unitPrice": 99.90,
+        "discount": 0
+      }
+    ]
+  }
+}

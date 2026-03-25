@@ -38,6 +38,13 @@ public partial class ProxyPayContext : DbContext
             entity.ToTable("proxypay_stores");
 
             entity.Property(e => e.StoreId).HasColumnName("store_id");
+            entity.Property(e => e.ClientId)
+                .IsRequired()
+                .HasMaxLength(32)
+                .HasColumnName("client_id");
+            entity.HasIndex(e => e.ClientId)
+                .IsUnique()
+                .HasDatabaseName("ix_proxypay_stores_client_id");
             entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.Name)
                 .IsRequired()
@@ -49,6 +56,9 @@ public partial class ProxyPayContext : DbContext
             entity.Property(e => e.AbacatePayApiKey)
                 .HasMaxLength(500)
                 .HasColumnName("abacatepay_api_key");
+            entity.Property(e => e.BillingStrategy)
+                .HasDefaultValue(1)
+                .HasColumnName("billing_strategy");
             entity.Property(e => e.CreatedAt)
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_at");
@@ -179,7 +189,6 @@ public partial class ProxyPayContext : DbContext
             entity.Property(e => e.StoreId).HasColumnName("store_id");
             entity.Property(e => e.CustomerId).HasColumnName("customer_id");
             entity.Property(e => e.Frequency).HasColumnName("frequency");
-            entity.Property(e => e.BillingStrategy).HasColumnName("billing_strategy");
             entity.Property(e => e.BillingStartDate)
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("billing_start_date");

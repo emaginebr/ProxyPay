@@ -1,5 +1,6 @@
 using System;
 using System.Text.Json.Serialization;
+using ProxyPay.DTO.Billing;
 
 namespace ProxyPay.DTO.Store
 {
@@ -13,6 +14,8 @@ namespace ProxyPay.DTO.Store
         public string Name { get; set; }
         [JsonPropertyName("email")]
         public string Email { get; set; }
+        [JsonPropertyName("billingStrategy")]
+        public BillingStrategyEnum BillingStrategy { get; set; }
         [JsonPropertyName("createdAt")]
         public DateTime CreatedAt { get; set; }
         [JsonPropertyName("updatedAt")]

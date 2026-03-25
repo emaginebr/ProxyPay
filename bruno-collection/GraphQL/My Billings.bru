@@ -1,0 +1,46 @@
+meta {
+  name: My Billings
+  type: graphql
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/graphql
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:graphql {
+  {
+    myBillings(skip: 0, take: 10) {
+      items {
+        billingId
+        frequency
+        billingStartDate
+        status
+        createdAt
+        customer {
+          customerId
+          name
+          email
+        }
+        billingItems {
+          billingItemId
+          description
+          quantity
+          unitPrice
+          discount
+        }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+      }
+      totalCount
+    }
+  }
+}

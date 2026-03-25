@@ -1,0 +1,42 @@
+meta {
+  name: My Invoice By Number
+  type: graphql
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/graphql
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:graphql {
+  {
+    myInvoiceByNumber(invoiceNumber: "INV-0001") {
+      invoiceId
+      invoiceNumber
+      status
+      discount
+      dueDate
+      paidAt
+      createdAt
+      customer {
+        customerId
+        name
+        email
+      }
+      invoiceItems {
+        invoiceItemId
+        description
+        quantity
+        unitPrice
+        discount
+        total
+      }
+    }
+  }
+}

@@ -1,13 +1,17 @@
 meta {
-  name: Update
+  name: Create
   type: http
-  seq: 2
+  seq: 1
 }
 
-put {
+post {
   url: {{baseUrl}}/store
   body: json
   auth: bearer
+}
+
+headers {
+  X-Tenant-Id: emagine
 }
 
 auth:bearer {
@@ -16,8 +20,7 @@ auth:bearer {
 
 body:json {
   {
-    "storeId": 1,
-    "name": "My Store Updated",
+    "name": "My Store",
     "email": "store@example.com",
     "abacatePayApiKey": "",
     "billingStrategy": 1

@@ -1,0 +1,36 @@
+meta {
+  name: My Customers
+  type: graphql
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/graphql
+  body: graphql
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:graphql {
+  {
+    myCustomers(skip: 0, take: 10) {
+      items {
+        customerId
+        name
+        email
+        documentId
+        cellphone
+        createdAt
+        updatedAt
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+      }
+      totalCount
+    }
+  }
+}

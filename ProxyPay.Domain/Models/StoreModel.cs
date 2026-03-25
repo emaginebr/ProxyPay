@@ -1,3 +1,4 @@
+using ProxyPay.DTO.Billing;
 using System;
 
 namespace ProxyPay.Domain.Models
@@ -10,6 +11,7 @@ namespace ProxyPay.Domain.Models
         public string Name { get; set; }
         public string Email { get; set; }
         public string AbacatePayApiKey { get; set; }
+        public BillingStrategyEnum BillingStrategy { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
@@ -40,6 +42,12 @@ namespace ProxyPay.Domain.Models
         public void UpdateAbacatePayApiKey(string apiKey)
         {
             AbacatePayApiKey = apiKey;
+            MarkUpdated();
+        }
+
+        public void UpdateBillingStrategy(BillingStrategyEnum strategy)
+        {
+            BillingStrategy = strategy;
             MarkUpdated();
         }
 

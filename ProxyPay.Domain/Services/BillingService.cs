@@ -98,7 +98,6 @@ namespace ProxyPay.Domain.Services
                 throw new Exception("Billing not found");
 
             existing.UpdateFrequency(billing.Frequency);
-            existing.UpdateStrategy(billing.BillingStrategy);
             existing.BillingStartDate = billing.BillingStartDate;
 
             await _billingRepository.UpdateAsync(existing);

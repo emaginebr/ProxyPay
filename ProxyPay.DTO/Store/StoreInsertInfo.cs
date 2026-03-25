@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using ProxyPay.DTO.Billing;
 
 namespace ProxyPay.DTO.Store
 {
@@ -10,5 +11,7 @@ namespace ProxyPay.DTO.Store
         public string Email { get; set; }
         [JsonPropertyName("abacatePayApiKey")]
         public string AbacatePayApiKey { get; set; }
+        [JsonPropertyName("billingStrategy")]
+        public BillingStrategyEnum BillingStrategy { get; set; }
     }
 }

@@ -23,7 +23,7 @@ COPY ["ProxyPay.API/ProxyPay.API.csproj", "ProxyPay.API/"]
 COPY ["ProxyPay.GraphQL/ProxyPay.GraphQL.csproj", "ProxyPay.GraphQL/"]
 COPY ["ProxyPay.Application/ProxyPay.Application.csproj", "ProxyPay.Application/"]
 COPY ["ProxyPay.Domain/ProxyPay.Domain.csproj", "ProxyPay.Domain/"]
-COPY ["ProxyPay/ProxyPay.csproj", "ProxyPay/"]
+COPY ["ProxyPay.DTO/ProxyPay.DTO.csproj", "ProxyPay.DTO/"]
 COPY ["ProxyPay.Infra.Interfaces/ProxyPay.Infra.Interfaces.csproj", "ProxyPay.Infra.Interfaces/"]
 COPY ["ProxyPay.Infra/ProxyPay.Infra.csproj", "ProxyPay.Infra/"]
 RUN dotnet restore "ProxyPay.API/ProxyPay.API.csproj"
