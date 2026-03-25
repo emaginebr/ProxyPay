@@ -14,46 +14,48 @@ namespace ProxyPay.Domain.Services
     public class BillingService : IBillingService
     {
         private readonly IBillingRepository<BillingModel> _billingRepository;
+        private readonly IBillingItemRepository<BillingItemModel> _billingItemRepository;
         private readonly ICustomerRepository<CustomerModel> _customerRepository;
         private readonly IMapper _mapper;
 
         public BillingService(
             IBillingRepository<BillingModel> billingRepository,
+            IBillingItemRepository<BillingItemModel> billingItemRepository,
             ICustomerRepository<CustomerModel> customerRepository,
             IMapper mapper
         )
         {
             _billingRepository = billingRepository;
+            _billingItemRepository = billingItemRepository;
             _customerRepository = customerRepository;
             _mapper = mapper;
         }
 
         public async Task<BillingModel> GetByIdAsync(long billingId)
         {
-            return await _billingRepository.GetByIdAsync(billingId);
+            var model = await _billingRepository.GetByIdAsync(billingId);
+            if (model == null)
+                return null;
+
+            var items = await _billingItemRepository.ListByBillingAsync(billingId);
+            model.Items = items.ToList();
+
+            return model;
         }
 
         public async Task<BillingInfo> GetBillingInfoAsync(BillingModel model)
         {
             var info = _mapper.Map<BillingInfo>(model);
+            info.Items = model.Items.Select(i => _mapper.Map<BillingItemInfo>(i)).ToList();
+
             if (model.CustomerId.HasValue)
             {
                 var customer = await _customerRepository.GetByIdAsync(model.CustomerId.Value);
                 if (customer != null)
                     info.Customer = _mapper.Map<CustomerInfo>(customer);
             }
-            return info;
-        }
 
-        public async Task<IList<BillingInfo>> ListByStoreAsync(long storeId)
-        {
-            var billings = await _billingRepository.ListByStoreAsync(storeId);
-            var result = new List<BillingInfo>();
-            foreach (var billing in billings)
-            {
-                result.Add(await GetBillingInfoAsync(billing));
-            }
-            return result;
+            return info;
         }
 
         public async Task<BillingModel> InsertAsync(BillingInsertInfo billing, long storeId)
@@ -72,7 +74,51 @@ namespace ProxyPay.Domain.Services
             model.Status = BillingStatusEnum.AwaitingPayment;
             model.CreatedAt = DateTime.Now;
 
-            return await _billingRepository.InsertAsync(model);
+            var saved = await _billingRepository.InsertAsync(model);
+
+            if (billing.Items != null)
+            {
+                foreach (var itemInfo in billing.Items)
+                {
+                    var itemModel = _mapper.Map<BillingItemModel>(itemInfo);
+                    itemModel.BillingId = saved.BillingId;
+                    itemModel.CreatedAt = DateTime.Now;
+                    var savedItem = await _billingItemRepository.InsertAsync(itemModel);
+                    saved.Items.Add(savedItem);
+                }
+            }
+
+            return saved;
+        }
+
+        public async Task<BillingModel> UpdateAsync(long billingId, BillingInsertInfo billing)
+        {
+            var existing = await GetByIdAsync(billingId);
+            if (existing == null)
+                throw new Exception("Billing not found");
+
+            existing.UpdateFrequency(billing.Frequency);
+            existing.UpdateStrategy(billing.BillingStrategy);
+            existing.BillingStartDate = billing.BillingStartDate;
+
+            await _billingRepository.UpdateAsync(existing);
+
+            await _billingItemRepository.DeleteByBillingAsync(billingId);
+            existing.Items.Clear();
+
+            if (billing.Items != null)
+            {
+                foreach (var itemInfo in billing.Items)
+                {
+                    var itemModel = _mapper.Map<BillingItemModel>(itemInfo);
+                    itemModel.BillingId = billingId;
+                    itemModel.CreatedAt = DateTime.Now;
+                    var savedItem = await _billingItemRepository.InsertAsync(itemModel);
+                    existing.Items.Add(savedItem);
+                }
+            }
+
+            return existing;
         }
 
         public async Task DeleteAsync(long billingId)
@@ -81,6 +127,7 @@ namespace ProxyPay.Domain.Services
             if (existing == null)
                 throw new Exception("Billing not found");
 
+            await _billingItemRepository.DeleteByBillingAsync(billingId);
             await _billingRepository.DeleteAsync(billingId);
         }
 
@@ -91,15 +138,14 @@ namespace ProxyPay.Domain.Services
             if (existing != null)
             {
                 _mapper.Map(customerInfo, existing);
-                existing.UpdatedAt = DateTime.Now;
+                existing.MarkUpdated();
                 await _customerRepository.UpdateAsync(existing);
                 return existing.CustomerId;
             }
 
             var newCustomer = _mapper.Map<CustomerModel>(customerInfo);
-            newCustomer.StoreId = storeId;
-            newCustomer.CreatedAt = DateTime.Now;
-            newCustomer.UpdatedAt = DateTime.Now;
+            newCustomer.SetStore(storeId);
+            newCustomer.MarkCreated();
 
             var saved = await _customerRepository.InsertAsync(newCustomer);
             return saved.CustomerId;

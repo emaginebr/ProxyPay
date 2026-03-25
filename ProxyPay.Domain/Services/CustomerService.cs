@@ -29,26 +29,33 @@ namespace ProxyPay.Domain.Services
             return await _customerRepository.GetByIdAsync(customerId);
         }
 
-        public Task<CustomerInfo> GetCustomerInfoAsync(CustomerModel model)
-        {
-            var info = _mapper.Map<CustomerInfo>(model);
-            return Task.FromResult(info);
-        }
-
-        public async Task<IList<CustomerInfo>> ListByStoreAsync(long storeId)
-        {
-            var customers = await _customerRepository.ListByStoreAsync(storeId);
-            return customers.Select(c => _mapper.Map<CustomerInfo>(c)).ToList();
-        }
-
         public async Task<CustomerModel> InsertAsync(CustomerInsertInfo customer, long storeId)
         {
             var model = _mapper.Map<CustomerModel>(customer);
-            model.StoreId = storeId;
-            model.CreatedAt = DateTime.Now;
-            model.UpdatedAt = DateTime.Now;
+            model.SetStore(storeId);
+            model.MarkCreated();
 
             return await _customerRepository.InsertAsync(model);
+        }
+
+        public async Task<long> UpsertAsync(CustomerInsertInfo customer, long storeId)
+        {
+            var existing = await _customerRepository.GetByEmailAndStoreAsync(customer.Email, storeId);
+
+            if (existing != null)
+            {
+                _mapper.Map(customer, existing);
+                existing.MarkUpdated();
+                await _customerRepository.UpdateAsync(existing);
+                return existing.CustomerId;
+            }
+
+            var model = _mapper.Map<CustomerModel>(customer);
+            model.SetStore(storeId);
+            model.MarkCreated();
+
+            var saved = await _customerRepository.InsertAsync(model);
+            return saved.CustomerId;
         }
 
         public async Task<CustomerModel> UpdateAsync(CustomerUpdateInfo customer)
@@ -58,7 +65,7 @@ namespace ProxyPay.Domain.Services
                 throw new Exception("Customer not found");
 
             _mapper.Map(customer, existing);
-            existing.UpdatedAt = DateTime.Now;
+            existing.MarkUpdated();
 
             return await _customerRepository.UpdateAsync(existing);
         }

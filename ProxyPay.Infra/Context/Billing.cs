@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace ProxyPay.Infra.Context;
 
@@ -23,4 +24,6 @@ public partial class Billing
     public virtual Store Store { get; set; }
 
     public virtual Customer Customer { get; set; }
+
+    public virtual ICollection<BillingItem> BillingItems { get; set; } = new List<BillingItem>();
 }

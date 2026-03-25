@@ -2,10 +2,9 @@ namespace ProxyPay.DTO.Billing
 {
     public enum BillingFrequencyEnum
     {
-        OneTime = 1,
-        Monthly = 2,
-        Quarterly = 3,
-        Semiannual = 4,
-        Annual = 5
+        Monthly = 1,
+        Quarterly = 2,
+        Semiannual = 3,
+        Annual = 4
     }
 }

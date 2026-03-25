@@ -4,8 +4,6 @@ using ProxyPay.Domain.Models;
 using ProxyPay.Domain.Interfaces;
 using ProxyPay.DTO.Transaction;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace ProxyPay.Domain.Services
@@ -29,12 +27,6 @@ namespace ProxyPay.Domain.Services
             return await _transactionRepository.GetByIdAsync(transactionId);
         }
 
-        public async Task<IList<TransactionInfo>> ListByStoreAsync(long storeId)
-        {
-            var transactions = await _transactionRepository.ListByStoreAsync(storeId);
-            return transactions.Select(t => _mapper.Map<TransactionInfo>(t)).ToList();
-        }
-
         public async Task<TransactionModel> InsertAsync(TransactionInsertInfo transaction, long storeId)
         {
             if (string.IsNullOrEmpty(transaction.Description))
@@ -55,17 +47,6 @@ namespace ProxyPay.Domain.Services
             model.CreatedAt = DateTime.Now;
 
             return await _transactionRepository.InsertAsync(model);
-        }
-
-        public async Task<BalanceInfo> GetBalanceAsync(long storeId)
-        {
-            return new BalanceInfo
-            {
-                Balance = await _transactionRepository.GetBalanceByStoreAsync(storeId),
-                TotalCredits = await _transactionRepository.GetTotalCreditsByStoreAsync(storeId),
-                TotalDebits = await _transactionRepository.GetTotalDebitsByStoreAsync(storeId),
-                TransactionCount = await _transactionRepository.GetCountByStoreAsync(storeId)
-            };
         }
     }
 }

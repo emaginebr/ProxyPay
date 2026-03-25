@@ -1,6 +1,5 @@
 using ProxyPay.Domain.Models;
 using ProxyPay.DTO.Invoice;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ProxyPay.Domain.Interfaces
@@ -9,8 +8,8 @@ namespace ProxyPay.Domain.Interfaces
     {
         Task<InvoiceModel> GetByIdAsync(long invoiceId);
         Task<InvoiceInfo> GetInvoiceInfoAsync(InvoiceModel model);
-        Task<IList<InvoiceInfo>> ListByStoreAsync(long storeId);
         Task<InvoiceModel> InsertAsync(InvoiceInsertInfo invoice, long storeId);
+        Task<InvoiceModel> InsertAsync(InvoiceInsertInfo invoice, long storeId, long customerId);
         Task<InvoiceModel> UpdateAsync(InvoiceUpdateInfo invoice);
         Task DeleteAsync(long invoiceId);
     }

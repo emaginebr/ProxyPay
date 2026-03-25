@@ -46,6 +46,14 @@ namespace ProxyPay.Infra.Repository
             return _mapper.Map<StoreModel>(row);
         }
 
+        public async Task<StoreModel> GetByClientIdAsync(string clientId)
+        {
+            var row = await _context.Stores.FirstOrDefaultAsync(x => x.ClientId == clientId);
+            if (row == null)
+                return null;
+            return _mapper.Map<StoreModel>(row);
+        }
+
         public async Task<IEnumerable<StoreModel>> ListByUserAsync(long userId)
         {
             var rows = await _context.Stores

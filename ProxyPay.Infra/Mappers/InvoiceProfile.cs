@@ -25,6 +25,8 @@ namespace ProxyPay.Infra.Mappers
 
             // DTO -> Model
             CreateMap<InvoiceInsertInfo, InvoiceModel>()
+                .ForSourceMember(s => s.ClientId, opt => opt.DoNotValidate())
+                .ForSourceMember(s => s.Customer, opt => opt.DoNotValidate())
                 .ForMember(d => d.InvoiceId, opt => opt.Ignore())
                 .ForMember(d => d.CustomerId, opt => opt.Ignore())
                 .ForMember(d => d.StoreId, opt => opt.Ignore())
@@ -32,7 +34,8 @@ namespace ProxyPay.Infra.Mappers
                 .ForMember(d => d.Status, opt => opt.Ignore())
                 .ForMember(d => d.PaidAt, opt => opt.Ignore())
                 .ForMember(d => d.CreatedAt, opt => opt.Ignore())
-                .ForMember(d => d.UpdatedAt, opt => opt.Ignore());
+                .ForMember(d => d.UpdatedAt, opt => opt.Ignore())
+                .ForMember(d => d.Items, opt => opt.Ignore());
             CreateMap<InvoiceItemInsertInfo, InvoiceItemModel>()
                 .ForMember(d => d.InvoiceItemId, opt => opt.Ignore())
                 .ForMember(d => d.InvoiceId, opt => opt.Ignore())

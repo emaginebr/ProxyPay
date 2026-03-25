@@ -25,6 +25,8 @@ public partial class ProxyPayContext : DbContext
 
     public virtual DbSet<Billing> Billings { get; set; }
 
+    public virtual DbSet<BillingItem> BillingItems { get; set; }
+
     public virtual DbSet<Transaction> Transactions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -197,6 +199,33 @@ public partial class ProxyPayContext : DbContext
                 .HasForeignKey(d => d.CustomerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_proxypay_billing_customer");
+        });
+
+        modelBuilder.Entity<BillingItem>(entity =>
+        {
+            entity.HasKey(e => e.BillingItemId).HasName("proxypay_billing_items_pkey");
+
+            entity.ToTable("proxypay_billing_items");
+
+            entity.Property(e => e.BillingItemId).HasColumnName("billing_item_id");
+            entity.Property(e => e.BillingId).HasColumnName("billing_id");
+            entity.Property(e => e.Description)
+                .IsRequired()
+                .HasMaxLength(500)
+                .HasColumnName("description");
+            entity.Property(e => e.Quantity).HasColumnName("quantity");
+            entity.Property(e => e.UnitPrice).HasColumnName("unit_price");
+            entity.Property(e => e.Discount)
+                .HasDefaultValue(0.0)
+                .HasColumnName("discount");
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("created_at");
+
+            entity.HasOne(d => d.Billing).WithMany(p => p.BillingItems)
+                .HasForeignKey(d => d.BillingId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("fk_proxypay_billing_item_billing");
         });
 
         modelBuilder.Entity<Transaction>(entity =>

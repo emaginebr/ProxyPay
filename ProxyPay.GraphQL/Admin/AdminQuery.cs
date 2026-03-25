@@ -12,18 +12,22 @@ namespace ProxyPay.GraphQL.Admin;
 [Authorize]
 public class AdminQuery
 {
-    [UseOffsetPaging]
+    private static long GetUserStoreId(ProxyPayContext context, IHttpContextAccessor httpContextAccessor, IUserClient userClient)
+    {
+        var userSession = userClient.GetUserInSession(httpContextAccessor.HttpContext!);
+        var userId = userSession!.UserId;
+        var store = context.Stores.FirstOrDefault(s => s.UserId == userId);
+        return store?.StoreId ?? 0;
+    }
+
     [UseProjection]
-    [UseFiltering]
-    [UseSorting]
-    public IQueryable<Store> GetMyStores(
+    public IQueryable<Store> GetMyStore(
         ProxyPayContext context,
         IHttpContextAccessor httpContextAccessor,
         [Service] IUserClient userClient)
     {
-        var userSession = userClient.GetUserInSession(httpContextAccessor.HttpContext!);
-        var userId = userSession!.UserId;
-        return context.Stores.Where(s => s.UserId == userId);
+        var storeId = GetUserStoreId(context, httpContextAccessor, userClient);
+        return context.Stores.Where(s => s.StoreId == storeId);
     }
 
     [UseOffsetPaging]
@@ -35,10 +39,8 @@ public class AdminQuery
         IHttpContextAccessor httpContextAccessor,
         [Service] IUserClient userClient)
     {
-        var userSession = userClient.GetUserInSession(httpContextAccessor.HttpContext!);
-        var userId = userSession!.UserId;
-        var storeIds = context.Stores.Where(s => s.UserId == userId).Select(s => s.StoreId);
-        return context.Invoices.Where(i => i.StoreId != null && storeIds.Contains(i.StoreId.Value));
+        var storeId = GetUserStoreId(context, httpContextAccessor, userClient);
+        return context.Invoices.Where(i => i.StoreId == storeId);
     }
 
     [UseProjection]
@@ -48,10 +50,8 @@ public class AdminQuery
         [Service] IUserClient userClient,
         string invoiceNumber)
     {
-        var userSession = userClient.GetUserInSession(httpContextAccessor.HttpContext!);
-        var userId = userSession!.UserId;
-        var storeIds = context.Stores.Where(s => s.UserId == userId).Select(s => s.StoreId);
-        return context.Invoices.Where(i => i.StoreId != null && storeIds.Contains(i.StoreId.Value) && i.InvoiceNumber == invoiceNumber);
+        var storeId = GetUserStoreId(context, httpContextAccessor, userClient);
+        return context.Invoices.Where(i => i.StoreId == storeId && i.InvoiceNumber == invoiceNumber);
     }
 
     [UseOffsetPaging]
@@ -63,10 +63,8 @@ public class AdminQuery
         IHttpContextAccessor httpContextAccessor,
         [Service] IUserClient userClient)
     {
-        var userSession = userClient.GetUserInSession(httpContextAccessor.HttpContext!);
-        var userId = userSession!.UserId;
-        var storeIds = context.Stores.Where(s => s.UserId == userId).Select(s => s.StoreId);
-        return context.Transactions.Where(t => t.StoreId != null && storeIds.Contains(t.StoreId.Value));
+        var storeId = GetUserStoreId(context, httpContextAccessor, userClient);
+        return context.Transactions.Where(t => t.StoreId == storeId);
     }
 
     [UseProjection]
@@ -75,11 +73,9 @@ public class AdminQuery
         IHttpContextAccessor httpContextAccessor,
         [Service] IUserClient userClient)
     {
-        var userSession = userClient.GetUserInSession(httpContextAccessor.HttpContext!);
-        var userId = userSession!.UserId;
-        var storeIds = context.Stores.Where(s => s.UserId == userId).Select(s => s.StoreId);
+        var storeId = GetUserStoreId(context, httpContextAccessor, userClient);
 
-        var transactions = context.Transactions.Where(t => t.StoreId != null && storeIds.Contains(t.StoreId.Value));
+        var transactions = context.Transactions.Where(t => t.StoreId == storeId);
         var lastTransaction = transactions
             .OrderByDescending(t => t.CreatedAt)
             .ThenByDescending(t => t.TransactionId)
@@ -103,10 +99,21 @@ public class AdminQuery
         IHttpContextAccessor httpContextAccessor,
         [Service] IUserClient userClient)
     {
-        var userSession = userClient.GetUserInSession(httpContextAccessor.HttpContext!);
-        var userId = userSession!.UserId;
-        var storeIds = context.Stores.Where(s => s.UserId == userId).Select(s => s.StoreId);
-        return context.Customers.Where(c => c.StoreId != null && storeIds.Contains(c.StoreId.Value));
+        var storeId = GetUserStoreId(context, httpContextAccessor, userClient);
+        return context.Customers.Where(c => c.StoreId == storeId);
+    }
+
+    [UseOffsetPaging]
+    [UseProjection]
+    [UseFiltering]
+    [UseSorting]
+    public IQueryable<Billing> GetMyBillings(
+        ProxyPayContext context,
+        IHttpContextAccessor httpContextAccessor,
+        [Service] IUserClient userClient)
+    {
+        var storeId = GetUserStoreId(context, httpContextAccessor, userClient);
+        return context.Billings.Where(b => b.StoreId == storeId);
     }
 }
 

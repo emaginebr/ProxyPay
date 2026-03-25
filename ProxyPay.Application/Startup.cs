@@ -64,6 +64,7 @@ namespace ProxyPay.Application
             injectDependency(typeof(ICustomerRepository<CustomerModel>), typeof(CustomerRepository), services, scoped);
             injectDependency(typeof(IStoreRepository<StoreModel>), typeof(StoreRepository), services, scoped);
             injectDependency(typeof(IBillingRepository<BillingModel>), typeof(BillingRepository), services, scoped);
+            injectDependency(typeof(IBillingItemRepository<BillingItemModel>), typeof(BillingItemRepository), services, scoped);
             #endregion
 
             #region Client

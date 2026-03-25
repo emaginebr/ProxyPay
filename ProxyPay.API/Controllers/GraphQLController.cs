@@ -9,36 +9,23 @@ namespace ProxyPay.API.Controllers
     public class GraphQLController : ControllerBase
     {
         /// <summary>
-        /// Public GraphQL endpoint (POST /graphql).
-        /// Access the interactive playground at /graphql to explore the schema.
-        /// Supports queries: stores, storeBySlug.
+        /// GraphQL endpoint (POST /graphql).
+        /// Requires authentication. Access the interactive playground at /graphql.
+        /// Supports queries: myStores, myInvoices, myInvoiceByNumber, myTransactions, myBalance, myCustomers.
         /// </summary>
-        [HttpPost("public")]
-        [AllowAnonymous]
-        [ProducesResponseType(typeof(GraphQLResponse), 200)]
-        public IActionResult PublicGraphQL([FromBody] GraphQLRequest request)
-        {
-            return Ok(new { message = "Use POST /graphql directly. This endpoint exists for Swagger documentation only." });
-        }
-
-        /// <summary>
-        /// Admin GraphQL endpoint (POST /graphql/admin).
-        /// Requires authentication. Access the interactive playground at /graphql/admin.
-        /// Supports queries: myStores, myInvoices, myTransactions.
-        /// </summary>
-        [HttpPost("admin")]
+        [HttpPost]
         [Authorize]
         [ProducesResponseType(typeof(GraphQLResponse), 200)]
-        public IActionResult AdminGraphQL([FromBody] GraphQLRequest request)
+        public IActionResult GraphQL([FromBody] GraphQLRequest request)
         {
-            return Ok(new { message = "Use POST /graphql/admin directly. This endpoint exists for Swagger documentation only." });
+            return Ok(new { message = "Use POST /graphql directly. This endpoint exists for Swagger documentation only." });
         }
     }
 
     public class GraphQLRequest
     {
         /// <summary>GraphQL query string</summary>
-        /// <example>{ stores { storeId name logoUrl } }</example>
+        /// <example>{ myStores { items { storeId name } } }</example>
         public string Query { get; set; }
 
         /// <summary>Operation name (optional, for multi-operation documents)</summary>

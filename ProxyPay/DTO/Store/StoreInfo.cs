@@ -7,6 +7,8 @@ namespace ProxyPay.DTO.Store
     {
         [JsonPropertyName("storeId")]
         public long StoreId { get; set; }
+        [JsonPropertyName("clientId")]
+        public string ClientId { get; set; }
         [JsonPropertyName("name")]
         public string Name { get; set; }
         [JsonPropertyName("email")]

@@ -30,30 +30,32 @@ namespace ProxyPay.Domain.Services
             if (model == null)
                 return null;
 
-            if (model.UserId != userId)
-                throw new UnauthorizedAccessException("Access denied: store does not belong to this user");
+            model.ValidateOwnership(userId);
+            return model;
+        }
+
+        public async Task<StoreModel> GetByClientIdAsync(string clientId)
+        {
+            if (string.IsNullOrWhiteSpace(clientId))
+                throw new Exception("ClientId is required");
+
+            var model = await _storeRepository.GetByClientIdAsync(clientId);
+            if (model == null)
+                throw new Exception("Store not found for the provided ClientId");
 
             return model;
         }
 
-        public Task<StoreInfo> GetStoreInfoAsync(StoreModel model)
-        {
-            var info = _mapper.Map<StoreInfo>(model);
-            return Task.FromResult(info);
-        }
-
-        public async Task<IList<StoreInfo>> ListByUserAsync(long userId)
-        {
-            var stores = await _storeRepository.ListByUserAsync(userId);
-            return stores.Select(s => _mapper.Map<StoreInfo>(s)).ToList();
-        }
-
         public async Task<StoreModel> InsertAsync(StoreInsertInfo store, long userId)
         {
+            var existing = await _storeRepository.ListByUserAsync(userId);
+            if (existing.Any())
+                throw new Exception("User already has a store");
+
             var model = _mapper.Map<StoreModel>(store);
-            model.UserId = userId;
-            model.CreatedAt = DateTime.Now;
-            model.UpdatedAt = DateTime.Now;
+            model.GenerateClientId();
+            model.SetOwner(userId);
+            model.MarkCreated();
 
             return await _storeRepository.InsertAsync(model);
         }
@@ -64,11 +66,9 @@ namespace ProxyPay.Domain.Services
             if (existing == null)
                 throw new Exception("Store not found");
 
-            if (existing.UserId != userId)
-                throw new UnauthorizedAccessException("Access denied: store does not belong to this user");
-
+            existing.ValidateOwnership(userId);
             _mapper.Map(store, existing);
-            existing.UpdatedAt = DateTime.Now;
+            existing.MarkUpdated();
 
             return await _storeRepository.UpdateAsync(existing);
         }
@@ -79,9 +79,7 @@ namespace ProxyPay.Domain.Services
             if (existing == null)
                 throw new Exception("Store not found");
 
-            if (existing.UserId != userId)
-                throw new UnauthorizedAccessException("Access denied: store does not belong to this user");
-
+            existing.ValidateOwnership(userId);
             await _storeRepository.DeleteAsync(storeId);
         }
     }

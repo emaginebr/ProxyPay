@@ -4,6 +4,7 @@
 
 CREATE TABLE proxypay_stores (
     store_id BIGSERIAL NOT NULL,
+    client_id VARCHAR(32) NOT NULL,
     user_id BIGINT NOT NULL,
     name VARCHAR(240) NOT NULL,
     email VARCHAR(240),
@@ -13,6 +14,7 @@ CREATE TABLE proxypay_stores (
     CONSTRAINT proxypay_stores_pkey PRIMARY KEY (store_id)
 );
 
+CREATE UNIQUE INDEX ix_proxypay_stores_client_id ON proxypay_stores (client_id);
 CREATE INDEX ix_proxypay_stores_user_id ON proxypay_stores (user_id);
 
 CREATE TABLE proxypay_customers (
@@ -72,6 +74,18 @@ CREATE TABLE proxypay_billings (
     CONSTRAINT proxypay_billings_pkey PRIMARY KEY (billing_id),
     CONSTRAINT fk_proxypay_billing_store FOREIGN KEY (store_id) REFERENCES proxypay_stores (store_id),
     CONSTRAINT fk_proxypay_billing_customer FOREIGN KEY (customer_id) REFERENCES proxypay_customers (customer_id)
+);
+
+CREATE TABLE proxypay_billing_items (
+    billing_item_id BIGSERIAL NOT NULL,
+    billing_id BIGINT NOT NULL,
+    description VARCHAR(500) NOT NULL,
+    quantity INTEGER NOT NULL,
+    unit_price DOUBLE PRECISION NOT NULL,
+    discount DOUBLE PRECISION NOT NULL DEFAULT 0,
+    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    CONSTRAINT proxypay_billing_items_pkey PRIMARY KEY (billing_item_id),
+    CONSTRAINT fk_proxypay_billing_item_billing FOREIGN KEY (billing_id) REFERENCES proxypay_billings (billing_id) ON DELETE CASCADE
 );
 
 CREATE TABLE proxypay_transactions (

@@ -2,20 +2,19 @@ using System;
 
 namespace ProxyPay.Domain.Models
 {
-    public class InvoiceItemModel
+    public class BillingItemModel
     {
-        public long InvoiceItemId { get; set; }
-        public long InvoiceId { get; set; }
+        public long BillingItemId { get; set; }
+        public long BillingId { get; set; }
         public string Description { get; set; }
         public int Quantity { get; set; }
         public double UnitPrice { get; set; }
         public double Discount { get; set; }
-        public double Total { get; set; }
         public DateTime CreatedAt { get; set; }
 
-        public void CalculateTotal()
+        public double GetTotal()
         {
-            Total = (Quantity * UnitPrice) - Discount;
+            return (UnitPrice * Quantity) - Discount;
         }
 
         public void Update(string description, int quantity, double unitPrice, double discount)
@@ -24,13 +23,6 @@ namespace ProxyPay.Domain.Models
             Quantity = quantity;
             UnitPrice = unitPrice;
             Discount = discount;
-            CalculateTotal();
-        }
-
-        public void MarkCreated()
-        {
-            CreatedAt = DateTime.Now;
-            CalculateTotal();
         }
     }
 }

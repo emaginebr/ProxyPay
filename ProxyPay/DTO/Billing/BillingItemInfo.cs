@@ -1,13 +1,13 @@
 using System.Text.Json.Serialization;
 
-namespace ProxyPay.DTO.Invoice
+namespace ProxyPay.DTO.Billing
 {
-    public class InvoiceItemInfo
+    public class BillingItemInfo
     {
-        [JsonPropertyName("invoiceItemId")]
-        public long InvoiceItemId { get; set; }
-        [JsonPropertyName("invoiceId")]
-        public long InvoiceId { get; set; }
+        [JsonPropertyName("billingItemId")]
+        public long BillingItemId { get; set; }
+        [JsonPropertyName("billingId")]
+        public long BillingId { get; set; }
         [JsonPropertyName("description")]
         public string Description { get; set; }
         [JsonPropertyName("quantity")]

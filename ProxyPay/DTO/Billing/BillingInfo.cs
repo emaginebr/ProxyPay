@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using ProxyPay.DTO.Customer;
 
@@ -24,5 +25,7 @@ namespace ProxyPay.DTO.Billing
         public DateTime CreatedAt { get; set; }
         [JsonPropertyName("customer")]
         public CustomerInfo Customer { get; set; }
+        [JsonPropertyName("items")]
+        public IList<BillingItemInfo> Items { get; set; }
     }
 }

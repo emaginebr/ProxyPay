@@ -29,31 +29,29 @@ namespace ProxyPay.Domain.Services
 
         public async Task<InvoiceModel> GetByIdAsync(long invoiceId)
         {
-            return await _invoiceRepository.GetByIdAsync(invoiceId);
+            var model = await _invoiceRepository.GetByIdAsync(invoiceId);
+            if (model == null)
+                return null;
+
+            var items = await _invoiceItemRepository.ListByInvoiceAsync(invoiceId);
+            model.Items = items.ToList();
+
+            return model;
         }
 
         public async Task<InvoiceInfo> GetInvoiceInfoAsync(InvoiceModel model)
         {
             var info = _mapper.Map<InvoiceInfo>(model);
-            var items = await _invoiceItemRepository.ListByInvoiceAsync(model.InvoiceId);
-            info.Items = items.Select(i => _mapper.Map<InvoiceItemInfo>(i)).ToList();
+            info.Items = model.Items.Select(i => _mapper.Map<InvoiceItemInfo>(i)).ToList();
             return info;
         }
 
-        public async Task<IList<InvoiceInfo>> ListByStoreAsync(long storeId)
+        public async Task<InvoiceModel> InsertAsync(InvoiceInsertInfo invoice, long storeId, long customerId)
         {
-            var invoices = await _invoiceRepository.ListByStoreAsync(storeId);
-            var result = new List<InvoiceInfo>();
-            foreach (var invoice in invoices)
-            {
-                result.Add(await GetInvoiceInfoAsync(invoice));
-            }
-            return result;
-        }
-
-        private double CalculateItemTotal(int quantity, double unitPrice, double discount)
-        {
-            return (quantity * unitPrice) - discount;
+            var model = await InsertAsync(invoice, storeId);
+            model.SetCustomer(customerId);
+            await _invoiceRepository.UpdateAsync(model);
+            return model;
         }
 
         public async Task<InvoiceModel> InsertAsync(InvoiceInsertInfo invoice, long storeId)
@@ -64,11 +62,10 @@ namespace ProxyPay.Domain.Services
             var invoiceNumber = await _invoiceRepository.GenerateInvoiceNumberAsync(storeId);
 
             var model = _mapper.Map<InvoiceModel>(invoice);
-            model.StoreId = storeId;
-            model.InvoiceNumber = invoiceNumber;
-            model.Status = InvoiceStatusEnum.Draft;
-            model.CreatedAt = DateTime.Now;
-            model.UpdatedAt = DateTime.Now;
+            model.SetStore(storeId);
+            model.SetInvoiceNumber(invoiceNumber);
+            model.MarkAsDraft();
+            model.MarkCreated();
 
             var savedInvoice = await _invoiceRepository.InsertAsync(model);
 
@@ -76,9 +73,9 @@ namespace ProxyPay.Domain.Services
             {
                 var itemModel = _mapper.Map<InvoiceItemModel>(item);
                 itemModel.InvoiceId = savedInvoice.InvoiceId;
-                itemModel.Total = CalculateItemTotal(item.Quantity, item.UnitPrice, item.Discount);
-                itemModel.CreatedAt = DateTime.Now;
-                await _invoiceItemRepository.InsertAsync(itemModel);
+                itemModel.MarkCreated();
+                var savedItem = await _invoiceItemRepository.InsertAsync(itemModel);
+                savedInvoice.Items.Add(savedItem);
             }
 
             return savedInvoice;
@@ -86,7 +83,7 @@ namespace ProxyPay.Domain.Services
 
         public async Task<InvoiceModel> UpdateAsync(InvoiceUpdateInfo invoice)
         {
-            var existing = await _invoiceRepository.GetByIdAsync(invoice.InvoiceId);
+            var existing = await GetByIdAsync(invoice.InvoiceId);
             if (existing == null)
                 throw new Exception("Invoice not found");
 
@@ -94,25 +91,22 @@ namespace ProxyPay.Domain.Services
                 throw new Exception("Invoice must have at least one item");
 
             existing.Notes = invoice.Notes;
-            existing.Status = invoice.Status;
             existing.Discount = invoice.Discount;
             existing.DueDate = invoice.DueDate;
-            existing.UpdatedAt = DateTime.Now;
-
-            if (invoice.Status == InvoiceStatusEnum.Paid && existing.PaidAt == null)
-                existing.PaidAt = DateTime.Now;
+            existing.SetStatus(invoice.Status);
 
             var updated = await _invoiceRepository.UpdateAsync(existing);
 
             await _invoiceItemRepository.DeleteByInvoiceAsync(existing.InvoiceId);
+            updated.ClearItems();
 
             foreach (var item in invoice.Items)
             {
                 var itemModel = _mapper.Map<InvoiceItemModel>(item);
                 itemModel.InvoiceId = existing.InvoiceId;
-                itemModel.Total = CalculateItemTotal(item.Quantity, item.UnitPrice, item.Discount);
-                itemModel.CreatedAt = DateTime.Now;
-                await _invoiceItemRepository.InsertAsync(itemModel);
+                itemModel.MarkCreated();
+                var savedItem = await _invoiceItemRepository.InsertAsync(itemModel);
+                updated.Items.Add(savedItem);
             }
 
             return updated;
