@@ -188,6 +188,8 @@ namespace ProxyPay.Domain.Services
 
             var invoiceInsert = new InvoiceRequest
             {
+                ClientId = request.ClientId,
+                Customer = request.Customer,
                 PaymentMethod = PaymentMethodEnum.Pix,
                 Discount = 0,
                 DueDate = DateTime.Now.AddDays(1),
