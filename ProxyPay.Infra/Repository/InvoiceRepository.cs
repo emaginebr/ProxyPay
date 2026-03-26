@@ -56,6 +56,16 @@ namespace ProxyPay.Infra.Repository
             return _mapper.Map<InvoiceModel>(row);
         }
 
+        public async Task<InvoiceModel> GetByExternalCodeAsync(string externalCode)
+        {
+            var row = await _context.Invoices
+                .Where(x => x.ExternalCode == externalCode)
+                .FirstOrDefaultAsync();
+            if (row == null)
+                return null;
+            return _mapper.Map<InvoiceModel>(row);
+        }
+
         public async Task<IEnumerable<InvoiceModel>> ListByStoreAsync(long storeId)
         {
             var rows = await _context.Invoices

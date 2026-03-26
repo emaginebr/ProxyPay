@@ -30,14 +30,22 @@ namespace ProxyPay.API.Controllers
         }
 
         [HttpPost("billing")]
-        public async Task<ActionResult<BillingInfo>> CreateBilling([FromBody] BillingInsertInfo billing)
+        public async Task<ActionResult<BillingResponse>> CreateBilling([FromBody] BillingRequest billing)
         {
             try
             {
                 var store = await _storeService.GetByClientIdAsync(billing.ClientId);
 
-                var result = await _billingService.InsertAsync(billing, store.StoreId);
-                return Ok(await _billingService.GetBillingInfoAsync(result));
+                if (billing.Customer == null)
+                    return BadRequest("Customer is required");
+
+                if (string.IsNullOrWhiteSpace(billing.Customer.Email))
+                    return BadRequest("Customer email is required");
+
+                var customerId = await _customerService.UpsertAsync(billing.Customer, store.StoreId);
+
+                var result = await _billingService.CreateBillingAsync(billing, store.StoreId, customerId);
+                return Ok(result);
             }
             catch (Exception ex)
             {

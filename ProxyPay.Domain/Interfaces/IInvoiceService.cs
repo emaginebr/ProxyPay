@@ -17,6 +17,7 @@ namespace ProxyPay.Domain.Interfaces
         Task<InvoiceModel> MarkAsPaidAsync(long invoiceId, DateTime? paidAt = null);
         Task<InvoiceModel> MarkAsExpiredAsync(long invoiceId);
         Task<InvoiceModel> CancelAsync(long invoiceId);
+        Task ProcessWebhookAsync(string eventType, string externalCode, DateTime? updatedAt);
         Task<InvoiceModel> UpdateAsync(InvoiceUpdateInfo invoice);
         Task DeleteAsync(long invoiceId);
     }

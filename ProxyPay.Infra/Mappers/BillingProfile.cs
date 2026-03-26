@@ -31,7 +31,7 @@ namespace ProxyPay.Infra.Mappers
                 .ForMember(d => d.Billing, opt => opt.Ignore());
 
             // DTO -> Model
-            CreateMap<BillingInsertInfo, BillingModel>()
+            CreateMap<BillingRequest, BillingModel>()
                 .ForSourceMember(s => s.ClientId, opt => opt.DoNotValidate())
                 .ForMember(d => d.BillingId, opt => opt.Ignore())
                 .ForMember(d => d.StoreId, opt => opt.Ignore())

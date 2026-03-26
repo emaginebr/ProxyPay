@@ -318,6 +318,61 @@ namespace ProxyPay.Domain.Services
             };
         }
 
+        public async Task ProcessWebhookAsync(string eventType, string externalCode, DateTime? updatedAt)
+        {
+            _logger.LogInformation("ProcessWebhook: event={Event}, externalCode={ExternalCode}", eventType, externalCode);
+
+            var invoice = await _invoiceRepository.GetByExternalCodeAsync(externalCode);
+            if (invoice == null)
+            {
+                _logger.LogWarning("ProcessWebhook: no invoice found for externalCode {ExternalCode}", externalCode);
+                return;
+            }
+
+            _logger.LogInformation("ProcessWebhook: found invoice {InvoiceId} with status {Status}", invoice.InvoiceId, invoice.Status);
+
+            switch (eventType)
+            {
+                case "billing.paid":
+                    if (invoice.Status == InvoiceStatusEnum.Paid)
+                    {
+                        _logger.LogInformation("ProcessWebhook: invoice {InvoiceId} already paid, skipping", invoice.InvoiceId);
+                        return;
+                    }
+                    await MarkAsPaidAsync(invoice.InvoiceId, updatedAt);
+                    _logger.LogInformation("ProcessWebhook: invoice {InvoiceId} marked as paid", invoice.InvoiceId);
+                    break;
+
+                case "billing.refunded":
+                    if (invoice.Status == InvoiceStatusEnum.Cancelled)
+                    {
+                        _logger.LogInformation("ProcessWebhook: invoice {InvoiceId} already cancelled, skipping", invoice.InvoiceId);
+                        return;
+                    }
+                    await CancelAsync(invoice.InvoiceId);
+                    _logger.LogInformation("ProcessWebhook: invoice {InvoiceId} cancelled (refunded)", invoice.InvoiceId);
+                    break;
+
+                case "billing.failed":
+                    if (invoice.Status == InvoiceStatusEnum.Expired)
+                    {
+                        _logger.LogInformation("ProcessWebhook: invoice {InvoiceId} already expired, skipping", invoice.InvoiceId);
+                        return;
+                    }
+                    await MarkAsExpiredAsync(invoice.InvoiceId);
+                    _logger.LogInformation("ProcessWebhook: invoice {InvoiceId} marked as expired (failed)", invoice.InvoiceId);
+                    break;
+
+                case "billing.created":
+                    _logger.LogInformation("ProcessWebhook: billing.created for invoice {InvoiceId}, no action needed", invoice.InvoiceId);
+                    break;
+
+                default:
+                    _logger.LogWarning("ProcessWebhook: unhandled event {Event} for invoice {InvoiceId}", eventType, invoice.InvoiceId);
+                    break;
+            }
+        }
+
         public async Task<InvoiceModel> UpdateAsync(InvoiceUpdateInfo invoice)
         {
             var existing = await GetByIdAsync(invoice.InvoiceId);

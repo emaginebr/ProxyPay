@@ -1,10 +1,16 @@
 using AutoMapper;
+using FluentValidation;
 using ProxyPay.Infra.Interfaces.Repository;
+using ProxyPay.Infra.Interfaces.AppServices;
 using ProxyPay.Domain.Core;
 using ProxyPay.Domain.Models;
 using ProxyPay.Domain.Interfaces;
+using ProxyPay.DTO;
+using ProxyPay.DTO.AbacatePay;
 using ProxyPay.DTO.Billing;
 using ProxyPay.DTO.Customer;
+using ProxyPay.DTO.Invoice;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,19 +23,34 @@ namespace ProxyPay.Domain.Services
         private readonly IBillingRepository<BillingModel> _billingRepository;
         private readonly IBillingItemRepository<BillingItemModel> _billingItemRepository;
         private readonly ICustomerRepository<CustomerModel> _customerRepository;
+        private readonly IAbacatePayAppService _abacatePayAppService;
+        private readonly IInvoiceService _invoiceService;
+        private readonly IInvoiceRepository<InvoiceModel> _invoiceRepository;
+        private readonly IValidator<BillingRequest> _billingRequestValidator;
         private readonly IMapper _mapper;
+        private readonly ILogger<BillingService> _logger;
 
         public BillingService(
             IBillingRepository<BillingModel> billingRepository,
             IBillingItemRepository<BillingItemModel> billingItemRepository,
             ICustomerRepository<CustomerModel> customerRepository,
-            IMapper mapper
+            IAbacatePayAppService abacatePayAppService,
+            IInvoiceService invoiceService,
+            IInvoiceRepository<InvoiceModel> invoiceRepository,
+            IValidator<BillingRequest> billingRequestValidator,
+            IMapper mapper,
+            ILogger<BillingService> logger
         )
         {
             _billingRepository = billingRepository;
             _billingItemRepository = billingItemRepository;
             _customerRepository = customerRepository;
+            _abacatePayAppService = abacatePayAppService;
+            _invoiceService = invoiceService;
+            _invoiceRepository = invoiceRepository;
+            _billingRequestValidator = billingRequestValidator;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task<BillingModel> GetByIdAsync(long billingId)
@@ -44,9 +65,9 @@ namespace ProxyPay.Domain.Services
             return model;
         }
 
-        public async Task<BillingInfo> GetBillingInfoAsync(BillingModel model)
+        public async Task<DTO.Billing.BillingInfo> GetBillingInfoAsync(BillingModel model)
         {
-            var info = _mapper.Map<BillingInfo>(model);
+            var info = _mapper.Map<DTO.Billing.BillingInfo>(model);
             info.Items = model.Items.Select(i => _mapper.Map<BillingItemInfo>(i)).ToList();
 
             if (model.CustomerId.HasValue)
@@ -59,7 +80,87 @@ namespace ProxyPay.Domain.Services
             return info;
         }
 
-        public async Task<BillingModel> InsertAsync(BillingInsertInfo billing, long storeId)
+        public async Task<BillingResponse> CreateBillingAsync(BillingRequest request, long storeId, long customerId)
+        {
+            _logger.LogInformation("CreateBilling: validating input for store {StoreId}", storeId);
+
+            _billingRequestValidator.ValidateAndThrow(request);
+
+            var products = request.Items.Select(i => new BillingProductRequest
+            {
+                ExternalId = i.BillingItemId > 0 ? i.BillingItemId.ToString() : Guid.NewGuid().ToString("N"),
+                Name = i.Description,
+                Description = i.Description,
+                Quantity = i.Quantity,
+                Price = (int)(i.UnitPrice * 100)
+            }).ToList();
+
+            _logger.LogInformation("CreateBilling: calling AbacatePay Billing API with frequency MULTIPLE_PAYMENTS");
+
+            var billingCreateRequest = new BillingCreateRequest
+            {
+                Frequency = AbacatePayBillingFrequency.MULTIPLE_PAYMENTS,
+                Methods = new List<string> { "CARD" },
+                Products = products,
+                ReturnUrl = request.ReturnUrl,
+                CompletionUrl = request.CompletionUrl,
+                Customer = new AbacatePayCustomerRequest
+                {
+                    Name = request.Customer.Name,
+                    Email = request.Customer.Email,
+                    Cellphone = request.Customer.Cellphone,
+                    TaxId = Utils.CleanCpf(request.Customer.DocumentId)
+                }
+            };
+
+            var abacatePayResponse = await _abacatePayAppService.CreateBillingAsync(billingCreateRequest);
+
+            if (abacatePayResponse?.Data == null)
+                throw new Exception("Failed to create billing: no response from payment provider");
+
+            var billingData = abacatePayResponse.Data;
+            _logger.LogInformation("CreateBilling: AbacatePay billing created with ID {AbacatePayId}, URL: {Url}", billingData.Id, billingData.Url);
+
+            _logger.LogInformation("CreateBilling: creating billing for store {StoreId}", storeId);
+
+            var savedBilling = await InsertAsync(request, storeId);
+
+            _logger.LogInformation("CreateBilling: creating invoice for billing {BillingId}", savedBilling.BillingId);
+
+            var invoiceRequest = new InvoiceRequest
+            {
+                ClientId = request.ClientId,
+                Customer = request.Customer,
+                PaymentMethod = request.PaymentMethod,
+                Discount = 0,
+                DueDate = request.BillingStartDate,
+                Items = request.Items.Select(i => new InvoiceItemRequest
+                {
+                    Id = i.BillingItemId > 0 ? i.BillingItemId.ToString() : Guid.NewGuid().ToString("N"),
+                    Description = i.Description,
+                    Quantity = i.Quantity,
+                    UnitPrice = i.UnitPrice,
+                    Discount = i.Discount
+                }).ToList()
+            };
+
+            var savedInvoice = await _invoiceService.InsertAsync(invoiceRequest, storeId, customerId);
+            savedInvoice.ExternalCode = billingData.Id;
+            await _invoiceRepository.UpdateAsync(savedInvoice);
+
+            _logger.LogInformation("CreateBilling: billing {BillingId} and invoice {InvoiceId} created successfully",
+                savedBilling.BillingId, savedInvoice.InvoiceId);
+
+            return new BillingResponse
+            {
+                BillingId = savedBilling.BillingId,
+                InvoiceId = savedInvoice.InvoiceId,
+                InvoiceNumber = savedInvoice.InvoiceNumber,
+                Url = billingData.Url
+            };
+        }
+
+        public async Task<BillingModel> InsertAsync(BillingRequest billing, long storeId)
         {
             if (billing.Customer == null)
                 throw new Exception("Customer is required");
@@ -98,7 +199,7 @@ namespace ProxyPay.Domain.Services
             return saved;
         }
 
-        public async Task<BillingModel> UpdateAsync(long billingId, BillingInsertInfo billing)
+        public async Task<BillingModel> UpdateAsync(long billingId, BillingRequest billing)
         {
             var existing = await GetByIdAsync(billingId);
             if (existing == null)

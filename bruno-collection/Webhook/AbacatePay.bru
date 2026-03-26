@@ -1,0 +1,28 @@
+meta {
+  name: AbacatePay
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/webhook/abacatepay?secret=dev-webhook-secret
+  body: json
+  auth: none
+}
+
+headers {
+  X-Tenant-Id: emagine
+}
+
+body:json {
+  {
+    "event": "billing.paid",
+    "devMode": true,
+    "data": {
+      "id": "REPLACE_WITH_EXTERNAL_CODE",
+      "amount": 10000,
+      "status": "PAID",
+      "updatedAt": "2026-03-26T12:00:00Z"
+    }
+  }
+}

@@ -5,7 +5,7 @@ using ProxyPay.DTO.Customer;
 
 namespace ProxyPay.DTO.Billing
 {
-    public class BillingInsertInfo
+    public class BillingRequest
     {
         [JsonPropertyName("clientId")]
         public string ClientId { get; set; }

@@ -8,8 +8,9 @@ namespace ProxyPay.Domain.Interfaces
     {
         Task<BillingModel> GetByIdAsync(long billingId);
         Task<BillingInfo> GetBillingInfoAsync(BillingModel model);
-        Task<BillingModel> InsertAsync(BillingInsertInfo billing, long storeId);
-        Task<BillingModel> UpdateAsync(long billingId, BillingInsertInfo billing);
+        Task<BillingResponse> CreateBillingAsync(BillingRequest request, long storeId, long customerId);
+        Task<BillingModel> InsertAsync(BillingRequest billing, long storeId);
+        Task<BillingModel> UpdateAsync(long billingId, BillingRequest billing);
         Task DeleteAsync(long billingId);
     }
 }
