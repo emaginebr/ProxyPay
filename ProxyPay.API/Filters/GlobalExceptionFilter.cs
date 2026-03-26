@@ -1,7 +1,9 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Linq;
 
 namespace ProxyPay.API.Filters
 {
@@ -19,6 +21,14 @@ namespace ProxyPay.API.Filters
             if (context.Exception is UnauthorizedAccessException)
             {
                 context.Result = new ForbidResult();
+                context.ExceptionHandled = true;
+                return;
+            }
+
+            if (context.Exception is ValidationException validationEx)
+            {
+                var errors = validationEx.Errors.Select(e => e.ErrorMessage).ToList();
+                context.Result = new BadRequestObjectResult(new { errors });
                 context.ExceptionHandled = true;
                 return;
             }

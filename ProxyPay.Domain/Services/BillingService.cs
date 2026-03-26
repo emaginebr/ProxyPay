@@ -1,5 +1,6 @@
 using AutoMapper;
 using ProxyPay.Infra.Interfaces.Repository;
+using ProxyPay.Domain.Core;
 using ProxyPay.Domain.Models;
 using ProxyPay.Domain.Interfaces;
 using ProxyPay.DTO.Billing;
@@ -65,6 +66,12 @@ namespace ProxyPay.Domain.Services
 
             if (string.IsNullOrWhiteSpace(billing.Customer.Email))
                 throw new Exception("Customer email is required");
+
+            if (string.IsNullOrWhiteSpace(billing.Customer.DocumentId))
+                throw new Exception("Customer CPF (documentId) is required");
+
+            if (!Utils.IsValidCpf(billing.Customer.DocumentId))
+                throw new Exception("Customer CPF (documentId) is invalid");
 
             var customerId = await UpsertCustomerAsync(billing.Customer, storeId);
 

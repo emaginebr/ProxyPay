@@ -57,9 +57,9 @@ namespace ProxyPay.Domain.Models
             MarkUpdated();
         }
 
-        public void MarkAsDraft()
+        public void MarkAsPending()
         {
-            Status = InvoiceStatusEnum.Draft;
+            Status = InvoiceStatusEnum.Pending;
             MarkUpdated();
         }
 
@@ -69,11 +69,10 @@ namespace ProxyPay.Domain.Models
             MarkUpdated();
         }
 
-        public void MarkAsPaid()
+        public void MarkAsPaid(DateTime? paidAt = null)
         {
             Status = InvoiceStatusEnum.Paid;
-            if (PaidAt == null)
-                PaidAt = DateTime.Now;
+            PaidAt = paidAt ?? DateTime.Now;
             MarkUpdated();
         }
 
@@ -86,6 +85,12 @@ namespace ProxyPay.Domain.Models
         public void Cancel()
         {
             Status = InvoiceStatusEnum.Cancelled;
+            MarkUpdated();
+        }
+
+        public void MarkAsExpired()
+        {
+            Status = InvoiceStatusEnum.Expired;
             MarkUpdated();
         }
 

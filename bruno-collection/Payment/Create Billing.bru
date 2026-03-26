@@ -16,9 +16,12 @@ headers {
 
 body:json {
   {
-    "clientId": "your-store-client-id",
+    "clientId": "c7a9f4764e6e47788731e707ebf63eed",
     "frequency": 1,
+    "paymentMethod": 1,
     "billingStartDate": "2026-04-01T00:00:00",
+    "completionUrl": "https://example.com/success",
+    "returnUrl": "https://example.com/return",
     "customer": {
       "name": "John Doe",
       "email": "john@example.com",
@@ -27,6 +30,7 @@ body:json {
     },
     "items": [
       {
+        "id": "PROD-001",
         "description": "Monthly subscription",
         "quantity": 1,
         "unitPrice": 99.90,

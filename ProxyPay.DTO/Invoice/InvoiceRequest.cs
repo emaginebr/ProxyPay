@@ -5,7 +5,7 @@ using ProxyPay.DTO.Customer;
 
 namespace ProxyPay.DTO.Invoice
 {
-    public class InvoiceInsertInfo
+    public class InvoiceRequest
     {
         [JsonPropertyName("clientId")]
         public string ClientId { get; set; }
@@ -24,6 +24,6 @@ namespace ProxyPay.DTO.Invoice
         [JsonPropertyName("dueDate")]
         public DateTime DueDate { get; set; }
         [JsonPropertyName("items")]
-        public IList<InvoiceItemInsertInfo> Items { get; set; }
+        public IList<InvoiceItemRequest> Items { get; set; }
     }
 }

@@ -1,6 +1,8 @@
 using AutoMapper;
+using FluentValidation;
 using ProxyPay.Infra.Interfaces.Repository;
 using ProxyPay.Infra.Interfaces.AppServices;
+using ProxyPay.Domain.Core;
 using ProxyPay.Domain.Models;
 using ProxyPay.Domain.Interfaces;
 using ProxyPay.DTO;
@@ -19,6 +21,8 @@ namespace ProxyPay.Domain.Services
         private readonly IInvoiceRepository<InvoiceModel> _invoiceRepository;
         private readonly IInvoiceItemRepository<InvoiceItemModel> _invoiceItemRepository;
         private readonly IAbacatePayAppService _abacatePayAppService;
+        private readonly IValidator<InvoiceRequest> _invoiceInsertValidator;
+        private readonly IValidator<QRCodeRequest> _qrCodeRequestValidator;
         private readonly IMapper _mapper;
         private readonly ILogger<InvoiceService> _logger;
 
@@ -26,6 +30,8 @@ namespace ProxyPay.Domain.Services
             IInvoiceRepository<InvoiceModel> invoiceRepository,
             IInvoiceItemRepository<InvoiceItemModel> invoiceItemRepository,
             IAbacatePayAppService abacatePayAppService,
+            IValidator<InvoiceRequest> invoiceInsertValidator,
+            IValidator<QRCodeRequest> qrCodeRequestValidator,
             IMapper mapper,
             ILogger<InvoiceService> logger
         )
@@ -33,6 +39,8 @@ namespace ProxyPay.Domain.Services
             _invoiceRepository = invoiceRepository;
             _invoiceItemRepository = invoiceItemRepository;
             _abacatePayAppService = abacatePayAppService;
+            _invoiceInsertValidator = invoiceInsertValidator;
+            _qrCodeRequestValidator = qrCodeRequestValidator;
             _mapper = mapper;
             _logger = logger;
         }
@@ -56,7 +64,7 @@ namespace ProxyPay.Domain.Services
             return info;
         }
 
-        public async Task<InvoiceModel> InsertAsync(InvoiceInsertInfo invoice, long storeId, long customerId)
+        public async Task<InvoiceModel> InsertAsync(InvoiceRequest invoice, long storeId, long customerId)
         {
             var model = await InsertAsync(invoice, storeId);
             model.SetCustomer(customerId);
@@ -64,17 +72,16 @@ namespace ProxyPay.Domain.Services
             return model;
         }
 
-        public async Task<InvoiceModel> InsertAsync(InvoiceInsertInfo invoice, long storeId)
+        public async Task<InvoiceModel> InsertAsync(InvoiceRequest invoice, long storeId)
         {
-            if (invoice.Items == null || !invoice.Items.Any())
-                throw new Exception("Invoice must have at least one item");
+            _invoiceInsertValidator.ValidateAndThrow(invoice);
 
             var invoiceNumber = await _invoiceRepository.GenerateInvoiceNumberAsync(storeId);
 
             var model = _mapper.Map<InvoiceModel>(invoice);
             model.SetStore(storeId);
             model.SetInvoiceNumber(invoiceNumber);
-            model.MarkAsDraft();
+            model.MarkAsPending();
             model.MarkCreated();
 
             var savedInvoice = await _invoiceRepository.InsertAsync(model);
@@ -91,39 +98,85 @@ namespace ProxyPay.Domain.Services
             return savedInvoice;
         }
 
-        public async Task<QRCodeResponse> CreateQRCodeAsync(InvoiceInsertInfo invoice, long storeId, long customerId)
+        public async Task<InvoiceResponse> CreateInvoiceAsync(InvoiceRequest request, long storeId, long customerId)
         {
-            _logger.LogInformation("CreateQRCode: validating input for store {StoreId}", storeId);
+            _logger.LogInformation("CreateInvoice: validating input for store {StoreId}", storeId);
 
-            if (invoice.Customer == null)
-                throw new Exception("Customer is required");
+            _invoiceInsertValidator.ValidateAndThrow(request);
 
-            if (string.IsNullOrWhiteSpace(invoice.Customer.Email))
-                throw new Exception("Customer email is required");
-
-            if (invoice.Items == null || !invoice.Items.Any())
-                throw new Exception("Invoice must have at least one item");
-
-            var totalAmount = invoice.Items.Sum(i => (i.Quantity * i.UnitPrice) - i.Discount);
-            if (totalAmount <= 0)
-                throw new Exception("Total amount must be greater than zero");
-
-            _logger.LogInformation("CreateQRCode: calling AbacatePay API for amount {Amount}", (int)(totalAmount * 100));
-
-            var qrCodeRequest = new PixQrCodeCreateRequest
+            var products = request.Items.Select(i => new BillingProductRequest
             {
-                Amount = (int)(totalAmount * 100),
-                Description = invoice.Notes ?? "Payment",
+                ExternalId = i.Id,
+                Name = i.Description,
+                Description = i.Description,
+                Quantity = i.Quantity,
+                Price = (int)(i.UnitPrice * 100)
+            }).ToList();
+
+            _logger.LogInformation("CreateInvoice: calling AbacatePay Billing API");
+
+            var billingRequest = new BillingCreateRequest
+            {
+                Frequency = AbacatePayBillingFrequency.ONE_TIME,
+                Methods = new List<string> { "CARD" },
+                Products = products,
+                ReturnUrl = request.ReturnUrl,
+                CompletionUrl = request.CompletionUrl,
                 Customer = new AbacatePayCustomerRequest
                 {
-                    Name = invoice.Customer.Name,
-                    Email = invoice.Customer.Email,
-                    Cellphone = invoice.Customer.Cellphone,
-                    TaxId = invoice.Customer.DocumentId
+                    Name = request.Customer.Name,
+                    Email = request.Customer.Email,
+                    Cellphone = request.Customer.Cellphone,
+                    TaxId = Core.Utils.CleanCpf(request.Customer.DocumentId)
                 }
             };
 
-            var abacatePayResponse = await _abacatePayAppService.CreatePixQrCodeAsync(qrCodeRequest);
+            var abacatePayResponse = await _abacatePayAppService.CreateBillingAsync(billingRequest);
+
+            if (abacatePayResponse?.Data == null)
+                throw new Exception("Failed to create billing: no response from payment provider");
+
+            var billingData = abacatePayResponse.Data;
+            _logger.LogInformation("CreateInvoice: billing created with ID {BillingId}, URL: {Url}", billingData.Id, billingData.Url);
+
+            _logger.LogInformation("CreateInvoice: creating invoice for store {StoreId}", storeId);
+
+            var savedInvoice = await InsertAsync(request, storeId, customerId);
+            savedInvoice.ExternalCode = billingData.Id;
+            await _invoiceRepository.UpdateAsync(savedInvoice);
+
+            return new InvoiceResponse
+            {
+                InvoiceId = savedInvoice.InvoiceId,
+                InvoiceNumber = savedInvoice.InvoiceNumber,
+                Url = billingData.Url
+            };
+        }
+
+        public async Task<QRCodeResponse> CreateQRCodeAsync(QRCodeRequest request, long storeId, long customerId)
+        {
+            _logger.LogInformation("CreateQRCode: validating input for store {StoreId}", storeId);
+
+            _qrCodeRequestValidator.ValidateAndThrow(request);
+
+            var totalAmount = request.Items.Sum(i => (i.Quantity * i.UnitPrice) - i.Discount);
+
+            _logger.LogInformation("CreateQRCode: calling AbacatePay API for amount {Amount}", (int)(totalAmount * 100));
+
+            var pixRequest = new PixQrCodeCreateRequest
+            {
+                Amount = (int)(totalAmount * 100),
+                Description = "Payment",
+                Customer = new AbacatePayCustomerRequest
+                {
+                    Name = request.Customer.Name,
+                    Email = request.Customer.Email,
+                    Cellphone = request.Customer.Cellphone,
+                    TaxId = Utils.CleanCpf(request.Customer.DocumentId)
+                }
+            };
+
+            var abacatePayResponse = await _abacatePayAppService.CreatePixQrCodeAsync(pixRequest);
 
             if (abacatePayResponse?.Data == null)
                 throw new Exception("Failed to create QR Code: no response from payment provider");
@@ -133,7 +186,15 @@ namespace ProxyPay.Domain.Services
 
             _logger.LogInformation("CreateQRCode: creating invoice for store {StoreId}", storeId);
 
-            var savedInvoice = await InsertAsync(invoice, storeId, customerId);
+            var invoiceInsert = new InvoiceRequest
+            {
+                PaymentMethod = PaymentMethodEnum.Pix,
+                Discount = 0,
+                DueDate = DateTime.Now.AddDays(1),
+                Items = request.Items
+            };
+
+            var savedInvoice = await InsertAsync(invoiceInsert, storeId, customerId);
             savedInvoice.PaymentMethod = PaymentMethodEnum.Pix;
             savedInvoice.ExternalCode = qrCodeData.Id;
 
@@ -149,10 +210,111 @@ namespace ProxyPay.Domain.Services
             {
                 InvoiceId = savedInvoice.InvoiceId,
                 InvoiceNumber = savedInvoice.InvoiceNumber,
-                ExternalId = qrCodeData.Id,
                 BrCode = qrCodeData.BrCode,
                 BrCodeBase64 = qrCodeData.BrCodeBase64,
                 ExpiredAt = savedInvoice.ExpiresAt
+            };
+        }
+
+        public async Task<QRCodeStatusResponse> CheckQRCodeStatusAsync(long invoiceId)
+        {
+            _logger.LogInformation("CheckQRCodeStatus: checking invoice {InvoiceId}", invoiceId);
+
+            var invoice = await _invoiceRepository.GetByIdAsync(invoiceId);
+            if (invoice == null)
+                throw new Exception("Invoice not found");
+
+            if (string.IsNullOrWhiteSpace(invoice.ExternalCode))
+                throw new Exception("Invoice does not have an associated QR Code");
+
+            if (invoice.Status != InvoiceStatusEnum.Pending)
+            {
+                _logger.LogInformation("CheckQRCodeStatus: invoice {InvoiceId} already has status {Status}", invoiceId, invoice.Status);
+                return BuildStatusResponse(invoice);
+            }
+
+            _logger.LogInformation("CheckQRCodeStatus: calling AbacatePay for external code {ExternalCode}", invoice.ExternalCode);
+
+            var abacatePayResponse = await _abacatePayAppService.CheckStatusAsync(invoice.ExternalCode);
+
+            if (abacatePayResponse?.Data == null)
+                throw new Exception("Failed to check QR Code status: no response from payment provider");
+
+            var status = abacatePayResponse.Data.Status?.ToUpper();
+            _logger.LogInformation("CheckQRCodeStatus: AbacatePay status for invoice {InvoiceId}: {Status}", invoiceId, status);
+
+            DateTime? paidAt = null;
+            if (status == "PAID" && DateTime.TryParse(abacatePayResponse.Data.UpdatedAt, out var parsedPaidAt))
+                paidAt = parsedPaidAt;
+
+            switch (status)
+            {
+                case "PAID":
+                    await MarkAsPaidAsync(invoiceId, paidAt);
+                    invoice.MarkAsPaid(paidAt);
+                    break;
+                case "EXPIRED":
+                    await MarkAsExpiredAsync(invoiceId);
+                    invoice.MarkAsExpired();
+                    break;
+                case "CANCELLED":
+                    await CancelAsync(invoiceId);
+                    invoice.Cancel();
+                    break;
+                case "PENDING":
+                default:
+                    break;
+            }
+
+            return BuildStatusResponse(invoice);
+        }
+
+        public async Task<InvoiceModel> MarkAsPaidAsync(long invoiceId, DateTime? paidAt = null)
+        {
+            _logger.LogInformation("MarkAsPaid: invoice {InvoiceId}, paidAt {PaidAt}", invoiceId, paidAt);
+
+            var invoice = await _invoiceRepository.GetByIdAsync(invoiceId);
+            if (invoice == null)
+                throw new Exception("Invoice not found");
+
+            invoice.MarkAsPaid(paidAt);
+            return await _invoiceRepository.UpdateAsync(invoice);
+        }
+
+        public async Task<InvoiceModel> MarkAsExpiredAsync(long invoiceId)
+        {
+            _logger.LogInformation("MarkAsExpired: invoice {InvoiceId}", invoiceId);
+
+            var invoice = await _invoiceRepository.GetByIdAsync(invoiceId);
+            if (invoice == null)
+                throw new Exception("Invoice not found");
+
+            invoice.MarkAsExpired();
+            return await _invoiceRepository.UpdateAsync(invoice);
+        }
+
+        public async Task<InvoiceModel> CancelAsync(long invoiceId)
+        {
+            _logger.LogInformation("Cancel: invoice {InvoiceId}", invoiceId);
+
+            var invoice = await _invoiceRepository.GetByIdAsync(invoiceId);
+            if (invoice == null)
+                throw new Exception("Invoice not found");
+
+            invoice.Cancel();
+            return await _invoiceRepository.UpdateAsync(invoice);
+        }
+
+        private static QRCodeStatusResponse BuildStatusResponse(InvoiceModel invoice)
+        {
+            return new QRCodeStatusResponse
+            {
+                InvoiceId = invoice.InvoiceId,
+                InvoiceNumber = invoice.InvoiceNumber,
+                Paid = invoice.Status == InvoiceStatusEnum.Paid,
+                Status = invoice.Status,
+                StatusText = invoice.Status.ToString(),
+                ExpiresAt = invoice.ExpiresAt
             };
         }
 

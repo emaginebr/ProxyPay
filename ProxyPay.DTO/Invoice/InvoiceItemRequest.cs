@@ -2,8 +2,10 @@ using System.Text.Json.Serialization;
 
 namespace ProxyPay.DTO.Invoice
 {
-    public class InvoiceItemInsertInfo
+    public class InvoiceItemRequest
     {
+        [JsonPropertyName("id")]
+        public string Id { get; set; }
         [JsonPropertyName("description")]
         public string Description { get; set; }
         [JsonPropertyName("quantity")]

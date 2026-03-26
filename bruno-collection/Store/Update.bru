@@ -10,6 +10,10 @@ put {
   auth: bearer
 }
 
+headers {
+  X-Tenant-Id: emagine
+}
+
 auth:bearer {
   token: {{token}}
 }
@@ -19,7 +23,6 @@ body:json {
     "storeId": 1,
     "name": "My Store Updated",
     "email": "store@example.com",
-    "abacatePayApiKey": "",
     "billingStrategy": 1
   }
 }

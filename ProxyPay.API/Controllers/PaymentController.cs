@@ -46,7 +46,7 @@ namespace ProxyPay.API.Controllers
         }
 
         [HttpPost("invoice")]
-        public async Task<ActionResult<InvoiceInfo>> CreateInvoice([FromBody] InvoiceInsertInfo invoice)
+        public async Task<ActionResult<InvoiceResponse>> CreateInvoice([FromBody] InvoiceRequest invoice)
         {
             try
             {
@@ -60,8 +60,8 @@ namespace ProxyPay.API.Controllers
 
                 var customerId = await _customerService.UpsertAsync(invoice.Customer, store.StoreId);
 
-                var result = await _invoiceService.InsertAsync(invoice, store.StoreId, customerId);
-                return Ok(await _invoiceService.GetInvoiceInfoAsync(result));
+                var result = await _invoiceService.CreateInvoiceAsync(invoice, store.StoreId, customerId);
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -70,21 +70,35 @@ namespace ProxyPay.API.Controllers
         }
 
         [HttpPost("qrcode")]
-        public async Task<ActionResult<QRCodeResponse>> CreateQRCode([FromBody] InvoiceInsertInfo invoice)
+        public async Task<ActionResult<QRCodeResponse>> CreateQRCode([FromBody] QRCodeRequest request)
         {
             try
             {
-                var store = await _storeService.GetByClientIdAsync(invoice.ClientId);
+                var store = await _storeService.GetByClientIdAsync(request.ClientId);
 
-                if (invoice.Customer == null)
+                if (request.Customer == null)
                     return BadRequest("Customer is required");
 
-                if (string.IsNullOrWhiteSpace(invoice.Customer.Email))
+                if (string.IsNullOrWhiteSpace(request.Customer.Email))
                     return BadRequest("Customer email is required");
 
-                var customerId = await _customerService.UpsertAsync(invoice.Customer, store.StoreId);
+                var customerId = await _customerService.UpsertAsync(request.Customer, store.StoreId);
 
-                var result = await _invoiceService.CreateQRCodeAsync(invoice, store.StoreId, customerId);
+                var result = await _invoiceService.CreateQRCodeAsync(request, store.StoreId, customerId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("qrcode/status/{invoiceId}")]
+        public async Task<ActionResult<QRCodeStatusResponse>> CheckQRCodeStatus(long invoiceId)
+        {
+            try
+            {
+                var result = await _invoiceService.CheckQRCodeStatusAsync(invoiceId);
                 return Ok(result);
             }
             catch (Exception ex)

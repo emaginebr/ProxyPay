@@ -1,5 +1,6 @@
 using ProxyPay.Domain.Models;
 using ProxyPay.DTO.Invoice;
+using System;
 using System.Threading.Tasks;
 
 namespace ProxyPay.Domain.Interfaces
@@ -8,9 +9,14 @@ namespace ProxyPay.Domain.Interfaces
     {
         Task<InvoiceModel> GetByIdAsync(long invoiceId);
         Task<InvoiceInfo> GetInvoiceInfoAsync(InvoiceModel model);
-        Task<InvoiceModel> InsertAsync(InvoiceInsertInfo invoice, long storeId);
-        Task<InvoiceModel> InsertAsync(InvoiceInsertInfo invoice, long storeId, long customerId);
-        Task<QRCodeResponse> CreateQRCodeAsync(InvoiceInsertInfo invoice, long storeId, long customerId);
+        Task<InvoiceModel> InsertAsync(InvoiceRequest invoice, long storeId);
+        Task<InvoiceModel> InsertAsync(InvoiceRequest invoice, long storeId, long customerId);
+        Task<InvoiceResponse> CreateInvoiceAsync(InvoiceRequest request, long storeId, long customerId);
+        Task<QRCodeResponse> CreateQRCodeAsync(QRCodeRequest request, long storeId, long customerId);
+        Task<QRCodeStatusResponse> CheckQRCodeStatusAsync(long invoiceId);
+        Task<InvoiceModel> MarkAsPaidAsync(long invoiceId, DateTime? paidAt = null);
+        Task<InvoiceModel> MarkAsExpiredAsync(long invoiceId);
+        Task<InvoiceModel> CancelAsync(long invoiceId);
         Task<InvoiceModel> UpdateAsync(InvoiceUpdateInfo invoice);
         Task DeleteAsync(long invoiceId);
     }

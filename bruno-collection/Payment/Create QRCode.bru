@@ -10,21 +10,22 @@ post {
   auth: none
 }
 
+headers {
+  X-Tenant-Id: emagine
+}
+
 body:json {
   {
-    "clientId": "your-store-client-id",
+    "clientId": "c7a9f4764e6e47788731e707ebf63eed",
     "customer": {
       "name": "John Doe",
       "email": "john@example.com",
-      "documentId": "12345678901",
+      "documentId": "89639766100",
       "cellphone": "11999999999"
     },
-    "paymentMethod": 1,
-    "notes": "PIX payment",
-    "discount": 0,
-    "dueDate": "2026-04-30T00:00:00",
     "items": [
       {
+        "id": "PROD-001",
         "description": "Product A",
         "quantity": 1,
         "unitPrice": 100.00,

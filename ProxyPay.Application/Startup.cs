@@ -1,4 +1,6 @@
 using System;
+using FluentValidation;
+using ProxyPay.Domain.Validators;
 using ProxyPay.Infra.Interfaces;
 using ProxyPay.Infra.Interfaces.Repository;
 using ProxyPay.Infra;
@@ -43,6 +45,10 @@ namespace ProxyPay.Application
 
             #region AutoMapper
             services.AddAutoMapper(typeof(InvoiceProfile), typeof(TransactionProfile), typeof(CustomerProfile), typeof(StoreProfile), typeof(BillingProfile));
+            #endregion
+
+            #region Validators
+            services.AddValidatorsFromAssemblyContaining<QRCodeRequestValidator>(ServiceLifetime.Scoped);
             #endregion
 
             #region Infra

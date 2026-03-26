@@ -1,0 +1,19 @@
+meta {
+  name: Simulate Payment
+  type: http
+  seq: 5
+}
+
+post {
+  url: https://api.abacatepay.com/v1/pixQrCode/simulate-payment?id=pix_char_CJ3wyb1QJwy3rRB5kFNYYNdj
+  body: none
+  auth: bearer
+}
+
+params:query {
+  id: pix_char_CJ3wyb1QJwy3rRB5kFNYYNdj
+}
+
+auth:bearer {
+  token: abc_dev_Ggm5xKQhnNyfEtMg2K466j4D
+}

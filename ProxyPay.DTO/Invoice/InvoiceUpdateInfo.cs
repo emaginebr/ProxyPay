@@ -19,6 +19,6 @@ namespace ProxyPay.DTO.Invoice
         [JsonPropertyName("dueDate")]
         public DateTime DueDate { get; set; }
         [JsonPropertyName("items")]
-        public IList<InvoiceItemInsertInfo> Items { get; set; }
+        public IList<InvoiceItemRequest> Items { get; set; }
     }
 }

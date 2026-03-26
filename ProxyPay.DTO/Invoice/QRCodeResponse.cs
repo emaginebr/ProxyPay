@@ -9,8 +9,6 @@ namespace ProxyPay.DTO.Invoice
         public long InvoiceId { get; set; }
         [JsonPropertyName("invoiceNumber")]
         public string InvoiceNumber { get; set; }
-        [JsonPropertyName("externalId")]
-        public string ExternalId { get; set; }
         [JsonPropertyName("brCode")]
         public string BrCode { get; set; }
         [JsonPropertyName("brCodeBase64")]

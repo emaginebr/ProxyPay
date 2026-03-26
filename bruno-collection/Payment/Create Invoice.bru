@@ -16,24 +16,29 @@ headers {
 
 body:json {
   {
-    "clientId": "9ab473d655de44aeab6dc20cd0f30a4f",
+    "clientId": "c7a9f4764e6e47788731e707ebf63eed",
     "customer": {
       "name": "John Doe",
       "email": "john@example.com",
-      "documentId": "12345678901",
+      "documentId": "89639766100",
       "cellphone": "11999999999"
     },
+    "paymentMethod": 3,
+    "completionUrl": "https://example.com/success",
+    "returnUrl": "https://example.com/return",
     "notes": "Invoice for consulting services",
     "discount": 0,
     "dueDate": "2026-04-30T00:00:00",
     "items": [
       {
+        "id": "PROD-001",
         "description": "Consulting - 10 hours",
         "quantity": 10,
         "unitPrice": 150.00,
         "discount": 0
       },
       {
+        "id": "PROD-002",
         "description": "Setup fee",
         "quantity": 1,
         "unitPrice": 500.00,

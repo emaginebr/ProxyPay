@@ -1,0 +1,14 @@
+meta {
+  name: Check QRCode Status
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/payment/qrcode/status/1
+  auth: none
+}
+
+headers {
+  X-Tenant-Id: emagine
+}
