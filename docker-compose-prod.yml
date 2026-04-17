@@ -14,6 +14,8 @@ services:
       Tenants__emagine__JwtSecret: ${EMAGINE_JWT_SECRET}
       Tenants__monexup__ConnectionString: ${MONEXUP_CONNECTION_STRING}
       Tenants__monexup__JwtSecret: ${MONEXUP_JWT_SECRET}
+      Tenants__fortuno__ConnectionString: ${FORTUNO_CONNECTION_STRING}
+      Tenants__fortuno__JwtSecret: ${FORTUNO_JWT_SECRET}
       AbacatePay__ApiKey: ${ABACATEPAY_API_KEY}
       AbacatePay__WebhookSecret: ${ABACATEPAY_WEBHOOK_SECRET}
     networks:

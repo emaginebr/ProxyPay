@@ -20,10 +20,12 @@ namespace ProxyPay.Application
             {
                 var tenantId = _tenantContext.TenantId;
                 if (string.IsNullOrEmpty(tenantId))
-                    tenantId = _configuration["Tenant:DefaultTenantId"];
-                if (string.IsNullOrEmpty(tenantId))
                     throw new System.InvalidOperationException(
-                        "Tenant:DefaultTenantId is not configured in appsettings.json.");
+                        "Tenant context not set. Either the X-Tenant-Id header is missing from the current " +
+                        "HTTP request, or this code is running outside of an HTTP context without a " +
+                        "TenantContext.EnterScope(...) block wrapping the call (e.g., migration runner, " +
+                        "background job). Tenant:DefaultTenantId is no longer a silent fallback — see " +
+                        ".specify/memory/constitution.md §V and data-model.md R-003.");
                 return tenantId;
             }
         }

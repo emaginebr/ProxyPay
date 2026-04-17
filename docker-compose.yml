@@ -15,6 +15,9 @@ services:
       Tenants__monexup__ConnectionString: ${MONEXUP_CONNECTION_STRING}
       Tenants__monexup__JwtSecret: ${MONEXUP_JWT_SECRET}
       Tenants__monexup__BucketName: ${PROXYPAY_BUCKET_NAME}
+      Tenants__fortuno__ConnectionString: ${FORTUNO_CONNECTION_STRING}
+      Tenants__fortuno__JwtSecret: ${FORTUNO_JWT_SECRET}
+      Tenants__fortuno__BucketName: ${PROXYPAY_BUCKET_NAME}
       NAuth__ApiURL: ${NAUTH_API_URL}
       NAuth__BucketName: ${NAUTH_BUCKET_NAME}
       NAuth__JwtSecret: ${EMAGINE_JWT_SECRET}

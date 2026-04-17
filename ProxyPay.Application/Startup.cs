@@ -37,9 +37,12 @@ namespace ProxyPay.Application
         {
             #region Tenant
             services.AddHttpContextAccessor();
+            services.AddSingleton<ITenantCatalog, TenantCatalog>();
             services.AddScoped<ITenantContext, TenantContext>();
             services.AddScoped<ITenantResolver, TenantResolver>();
             services.AddScoped<TenantDbContextFactory>();
+            // Scoped: one DbContext per HTTP request, connection string resolved from the tenant of that request.
+            // Must NOT be Singleton (cross-tenant bleed) nor Transient (multiple DbContexts per request fragments transactions).
             services.AddScoped(sp => sp.GetRequiredService<TenantDbContextFactory>().CreateDbContext());
             #endregion
 

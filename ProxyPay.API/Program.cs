@@ -1,7 +1,10 @@
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using ProxyPay.Domain.Interfaces;
 using Serilog;
 using Serilog.Events;
 
@@ -27,6 +30,8 @@ namespace ProxyPay.API
                 Log.Information("Starting ProxyPay API");
 
                 var host = CreateHostBuilder(args).Build();
+
+                EnforceTenantIsolationInvariants(host.Services);
 
                 var env = host.Services.GetService<IWebHostEnvironment>();
                 if (env?.EnvironmentName == "Docker")
@@ -65,5 +70,32 @@ namespace ProxyPay.API
                 {
                     webBuilder.UseStartup<Startup>();
                 });
+
+        private static void EnforceTenantIsolationInvariants(System.IServiceProvider services)
+        {
+            using var scope = services.CreateScope();
+            var catalog = scope.ServiceProvider.GetService<ITenantCatalog>();
+            var configuration = scope.ServiceProvider.GetService<IConfiguration>();
+
+            if (catalog == null || configuration == null)
+                return;
+
+            var seen = new Dictionary<string, string>(System.StringComparer.Ordinal);
+            foreach (var tenantId in catalog.GetActiveTenantIds())
+            {
+                var cs = configuration[$"Tenants:{tenantId}:ConnectionString"];
+                if (string.IsNullOrWhiteSpace(cs))
+                    continue;
+
+                if (seen.TryGetValue(cs, out var otherTenant))
+                {
+                    throw new System.InvalidOperationException(
+                        $"Tenant isolation invariant violated: tenants '{otherTenant}' and '{tenantId}' share the same ConnectionString. " +
+                        $"Each tenant MUST point to a physically distinct database (see .specify/memory/constitution.md §V and data-model.md invariant #1).");
+                }
+
+                seen[cs] = tenantId;
+            }
+        }
     }
 }
