@@ -1,0 +1,368 @@
+/* ══════════════════════════════════════════════════════════════════
+   ProxyPay example-app — Design Tokens (Light Theme)
+   Direction: Editorial Fintech + Bento Grid (landing)
+              Informational Minimalism (dashboard)
+   3-Layer: Primitive → Semantic → Component
+   ══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ────────────────────────────────────────────────
+     LAYER 1 — PRIMITIVE TOKENS (raw values only)
+     ──────────────────────────────────────────────── */
+
+  /* Indigo (primary — "trust" in fintech) */
+  --indigo-50:  #EEF2FF;
+  --indigo-100: #E0E7FF;
+  --indigo-200: #C7D2FE;
+  --indigo-300: #A5B4FC;
+  --indigo-400: #818CF8;
+  --indigo-500: #6366F1;
+  --indigo-600: #4F46E5;
+  --indigo-700: #4338CA;
+  --indigo-800: #3730A3;
+  --indigo-900: #312E81;
+  --indigo-950: #1E1B4B;
+
+  /* Emerald (accent — "money/speed") */
+  --emerald-50:  #ECFDF5;
+  --emerald-100: #D1FAE5;
+  --emerald-200: #A7F3D0;
+  --emerald-300: #6EE7B7;
+  --emerald-400: #34D399;
+  --emerald-500: #10B981;
+  --emerald-600: #059669;
+  --emerald-700: #047857;
+  --emerald-800: #065F46;
+  --emerald-900: #064E3B;
+
+  /* Amber (highlight — "attention") */
+  --amber-50:  #FFFBEB;
+  --amber-100: #FEF3C7;
+  --amber-200: #FDE68A;
+  --amber-300: #FCD34D;
+  --amber-400: #FBBF24;
+  --amber-500: #F59E0B;
+  --amber-600: #D97706;
+  --amber-700: #B45309;
+
+  /* Slate (neutrals — informational) */
+  --slate-50:  #F8FAFC;
+  --slate-100: #F1F5F9;
+  --slate-200: #E2E8F0;
+  --slate-300: #CBD5E1;
+  --slate-400: #94A3B8;
+  --slate-500: #64748B;
+  --slate-600: #475569;
+  --slate-700: #334155;
+  --slate-800: #1E293B;
+  --slate-900: #0F172A;
+  --slate-950: #020617;
+
+  /* Feedback colors */
+  --red-50:  #FEF2F2;
+  --red-500: #EF4444;
+  --red-600: #DC2626;
+  --red-700: #B91C1C;
+
+  --sky-50:  #F0F9FF;
+  --sky-500: #0EA5E9;
+  --sky-600: #0284C7;
+
+  /* Typography — font families */
+  --font-display: "Space Grotesk", "Outfit", system-ui, sans-serif;
+  --font-sans:    "Inter", "DM Sans", system-ui, -apple-system, sans-serif;
+  --font-mono:    "JetBrains Mono", "Fira Code", ui-monospace, Consolas, monospace;
+
+  /* Typography — size scale (12→60) */
+  --fs-xs:     0.75rem;   /* 12 */
+  --fs-sm:     0.8125rem; /* 13 */
+  --fs-base:   0.9375rem; /* 15 — body base, comfortable reading */
+  --fs-md:     1rem;      /* 16 */
+  --fs-lg:     1.125rem;  /* 18 */
+  --fs-xl:     1.25rem;   /* 20 */
+  --fs-2xl:    1.5rem;    /* 24 */
+  --fs-3xl:    1.875rem;  /* 30 */
+  --fs-4xl:    2.25rem;   /* 36 */
+  --fs-5xl:    3rem;      /* 48 */
+  --fs-6xl:    3.75rem;   /* 60 */
+  --fs-display:clamp(2.5rem, 6vw + 1rem, 4.5rem); /* responsive hero */
+
+  /* Typography — weight / leading / tracking */
+  --fw-regular: 400;
+  --fw-medium:  500;
+  --fw-semibold:600;
+  --fw-bold:    700;
+  --fw-black:   800;
+
+  --lh-tight:   1.1;
+  --lh-snug:    1.25;
+  --lh-normal:  1.5;
+  --lh-relaxed: 1.65;
+  --lh-loose:   1.8;
+
+  --tracking-tighter: -0.04em;
+  --tracking-tight:   -0.02em;
+  --tracking-normal:  0;
+  --tracking-wide:    0.02em;
+  --tracking-wider:   0.08em;
+  --tracking-widest:  0.14em;
+
+  /* Spacing — 4px base scale */
+  --space-0:  0;
+  --space-1:  0.25rem; /* 4  */
+  --space-2:  0.5rem;  /* 8  */
+  --space-3:  0.75rem; /* 12 */
+  --space-4:  1rem;    /* 16 */
+  --space-5:  1.25rem; /* 20 */
+  --space-6:  1.5rem;  /* 24 */
+  --space-8:  2rem;    /* 32 */
+  --space-10: 2.5rem;  /* 40 */
+  --space-12: 3rem;    /* 48 */
+  --space-16: 4rem;    /* 64 */
+  --space-20: 5rem;    /* 80 */
+  --space-24: 6rem;    /* 96 */
+
+  /* Radius */
+  --radius-xs:  4px;
+  --radius-sm:  8px;
+  --radius-md:  12px;
+  --radius-lg:  16px;
+  --radius-xl:  20px;
+  --radius-2xl: 28px;
+  --radius-full:9999px;
+
+  /* Shadows — subtle for light surfaces */
+  --shadow-xs:   0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm:   0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md:   0 4px 12px rgba(15, 23, 42, 0.06), 0 2px 4px rgba(15, 23, 42, 0.04);
+  --shadow-lg:   0 12px 28px rgba(15, 23, 42, 0.08), 0 4px 8px rgba(15, 23, 42, 0.04);
+  --shadow-xl:   0 24px 48px rgba(15, 23, 42, 0.10), 0 8px 16px rgba(15, 23, 42, 0.04);
+  --shadow-2xl:  0 32px 80px rgba(15, 23, 42, 0.14);
+  --shadow-inset:inset 0 1px 2px rgba(15, 23, 42, 0.04);
+
+  /* Colored glows (used sparingly on landing) */
+  --glow-primary: 0 16px 40px -12px rgba(79, 70, 229, 0.35);
+  --glow-accent:  0 16px 40px -12px rgba(16, 185, 129, 0.35);
+  --glow-amber:   0 16px 40px -12px rgba(245, 158, 11, 0.30);
+
+  /* Z-index scale */
+  --z-base:     0;
+  --z-raised:   10;
+  --z-sticky:   20;
+  --z-dropdown: 40;
+  --z-overlay:  80;
+  --z-modal:    100;
+  --z-toast:    200;
+  --z-tooltip:  300;
+
+  /* Transitions */
+  --ease-out:     cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out:  cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring:  cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast:     150ms;
+  --dur-base:     220ms;
+  --dur-slow:     320ms;
+
+  /* ────────────────────────────────────────────────
+     LAYER 2 — SEMANTIC TOKENS (purpose aliases)
+     ──────────────────────────────────────────────── */
+
+  /* Brand */
+  --color-primary:        var(--indigo-600);
+  --color-primary-hover:  var(--indigo-700);
+  --color-primary-active: var(--indigo-800);
+  --color-primary-soft:   var(--indigo-50);
+  --color-primary-on:     #FFFFFF;
+
+  --color-accent:        var(--emerald-500);
+  --color-accent-hover:  var(--emerald-600);
+  --color-accent-soft:   var(--emerald-50);
+  --color-accent-on:     #FFFFFF;
+
+  --color-highlight:      var(--amber-400);
+  --color-highlight-soft: var(--amber-50);
+
+  /* Surfaces */
+  --surface-page:      var(--slate-50);
+  --surface-default:   #FFFFFF;
+  --surface-elevated:  #FFFFFF;
+  --surface-sunken:    var(--slate-100);
+  --surface-subtle:    var(--slate-50);
+  --surface-inverse:   var(--slate-900);
+
+  /* Text */
+  --text-primary:   var(--slate-900);
+  --text-secondary: var(--slate-600);
+  --text-tertiary:  var(--slate-500);
+  --text-muted:     var(--slate-400);
+  --text-inverse:   #FFFFFF;
+  --text-link:      var(--indigo-600);
+  --text-on-brand:  #FFFFFF;
+
+  /* Borders */
+  --border-default:  var(--slate-200);
+  --border-strong:   var(--slate-300);
+  --border-subtle:   var(--slate-100);
+  --border-focus:    var(--indigo-500);
+  --border-invert:   rgba(255,255,255,0.12);
+
+  /* Feedback */
+  --color-success:      var(--emerald-600);
+  --color-success-soft: var(--emerald-50);
+  --color-warning:      var(--amber-600);
+  --color-warning-soft: var(--amber-50);
+  --color-danger:       var(--red-600);
+  --color-danger-soft:  var(--red-50);
+  --color-info:         var(--sky-600);
+  --color-info-soft:    var(--sky-50);
+
+  /* Gradients (editorial accents for landing) */
+  --gradient-brand:   linear-gradient(135deg, var(--indigo-600) 0%, var(--indigo-500) 45%, var(--emerald-500) 100%);
+  --gradient-accent:  linear-gradient(135deg, var(--emerald-500), var(--emerald-400));
+  --gradient-aurora:  radial-gradient(1200px 600px at 10% 0%, rgba(99,102,241,0.18), transparent 60%),
+                       radial-gradient(900px 500px at 90% 10%, rgba(16,185,129,0.14), transparent 60%),
+                       radial-gradient(800px 500px at 50% 100%, rgba(245,158,11,0.10), transparent 60%);
+  --gradient-mesh-soft: linear-gradient(180deg, #FFFFFF 0%, var(--slate-50) 100%);
+
+  /* Focus ring (a11y — priority 1) */
+  --focus-ring: 0 0 0 2px #FFFFFF, 0 0 0 4px var(--border-focus);
+
+  /* ────────────────────────────────────────────────
+     LAYER 3 — COMPONENT TOKENS
+     ──────────────────────────────────────────────── */
+
+  /* Button */
+  --btn-height-sm:     32px;
+  --btn-height-md:     40px;
+  --btn-height-lg:     48px;
+  --btn-radius:        var(--radius-md);
+  --btn-padding-x:     var(--space-5);
+  --btn-font-size:     var(--fs-sm);
+  --btn-font-weight:   var(--fw-semibold);
+
+  --btn-primary-bg:        var(--color-primary);
+  --btn-primary-bg-hover:  var(--color-primary-hover);
+  --btn-primary-fg:        var(--color-primary-on);
+  --btn-primary-shadow:    0 1px 2px rgba(67, 56, 202, 0.18), 0 4px 12px -4px rgba(67, 56, 202, 0.25);
+
+  --btn-secondary-bg:       var(--surface-default);
+  --btn-secondary-bg-hover: var(--slate-50);
+  --btn-secondary-fg:       var(--text-primary);
+  --btn-secondary-border:   var(--border-default);
+
+  --btn-ghost-bg-hover:     var(--slate-100);
+  --btn-ghost-fg:           var(--text-secondary);
+
+  --btn-danger-bg:          var(--color-danger);
+  --btn-danger-bg-hover:    var(--red-700);
+  --btn-danger-fg:          #FFFFFF;
+
+  /* Card */
+  --card-bg:            var(--surface-default);
+  --card-bg-elevated:   var(--surface-default);
+  --card-bg-glass:      rgba(255, 255, 255, 0.72);
+  --card-border:        var(--border-default);
+  --card-border-hover:  var(--indigo-200);
+  --card-radius:        var(--radius-lg);
+  --card-padding:       var(--space-6);
+  --card-shadow:        var(--shadow-sm);
+  --card-shadow-hover:  var(--shadow-md);
+
+  /* Input */
+  --input-bg:          var(--surface-default);
+  --input-bg-disabled: var(--slate-100);
+  --input-border:      var(--border-default);
+  --input-border-hover:var(--slate-300);
+  --input-border-focus:var(--border-focus);
+  --input-height:      40px;
+  --input-radius:      var(--radius-md);
+  --input-padding-x:   var(--space-3);
+  --input-font-size:   var(--fs-base);
+  --input-fg:          var(--text-primary);
+  --input-placeholder: var(--text-muted);
+  --input-ring-focus:  0 0 0 4px rgba(99,102,241,0.12);
+
+  /* Badge */
+  --badge-radius:      var(--radius-full);
+  --badge-padding-x:   var(--space-3);
+  --badge-padding-y:   2px;
+  --badge-font-size:   11px;
+  --badge-font-weight: var(--fw-semibold);
+
+  --badge-neutral-bg: var(--slate-100);
+  --badge-neutral-fg: var(--slate-700);
+  --badge-success-bg: var(--emerald-50);
+  --badge-success-fg: var(--emerald-700);
+  --badge-warning-bg: var(--amber-50);
+  --badge-warning-fg: var(--amber-700);
+  --badge-danger-bg:  var(--red-50);
+  --badge-danger-fg:  var(--red-700);
+  --badge-info-bg:    var(--sky-50);
+  --badge-info-fg:    var(--sky-600);
+  --badge-brand-bg:   var(--indigo-50);
+  --badge-brand-fg:   var(--indigo-700);
+
+  /* Table */
+  --table-header-bg:     var(--slate-50);
+  --table-header-fg:     var(--slate-500);
+  --table-row-bg:        var(--surface-default);
+  --table-row-bg-hover:  var(--slate-50);
+  --table-row-border:    var(--border-subtle);
+  --table-cell-padding-x:var(--space-5);
+  --table-cell-padding-y:var(--space-4);
+  --table-font-size:     var(--fs-sm);
+
+  /* Sidebar item */
+  --sidebar-bg:           var(--surface-default);
+  --sidebar-width:        264px;
+  --sidebar-item-fg:      var(--text-secondary);
+  --sidebar-item-fg-active:var(--indigo-700);
+  --sidebar-item-bg-active:var(--indigo-50);
+  --sidebar-item-bg-hover: var(--slate-50);
+  --sidebar-item-radius:  var(--radius-md);
+  --sidebar-item-padding-x:var(--space-3);
+  --sidebar-item-padding-y:10px;
+  --sidebar-item-indicator:var(--gradient-brand);
+
+  /* Topbar */
+  --topbar-bg:            rgba(255,255,255,0.82);
+  --topbar-border:        var(--border-default);
+  --topbar-height:        64px;
+  --topbar-blur:          blur(12px) saturate(1.4);
+
+  /* Metric card (dashboard) */
+  --metric-card-bg:       var(--surface-default);
+  --metric-card-border:   var(--border-default);
+  --metric-card-radius:   var(--radius-lg);
+  --metric-card-padding:  var(--space-6);
+  --metric-label-fs:      var(--fs-xs);
+  --metric-label-tracking:var(--tracking-wider);
+  --metric-value-fs:      var(--fs-3xl);
+  --metric-value-weight:  var(--fw-bold);
+  --metric-value-color:   var(--text-primary);
+  --metric-delta-up-fg:   var(--emerald-600);
+  --metric-delta-down-fg: var(--red-600);
+
+  /* QR preview frame (PIX modal / hero illustration) */
+  --qr-frame-bg:      #FFFFFF;
+  --qr-frame-border:  var(--indigo-100);
+  --qr-frame-radius:  var(--radius-xl);
+  --qr-frame-padding: var(--space-5);
+  --qr-frame-shadow:  var(--shadow-lg);
+  --qr-corner-color:  var(--indigo-600);
+}
+
+/* Dark theme opt-in (preserved for future, but light is the requirement) */
+@media (prefers-color-scheme: dark) {
+  /* Light theme is enforced — intentionally empty.
+     To enable dark mode later, override semantic layer here. */
+}
+
+/* Reduced motion — priority 1 */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-base: 0ms;
+    --dur-slow: 0ms;
+  }
+}

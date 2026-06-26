@@ -1,0 +1,1060 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ProxyPay — Pagamentos brasileiros em código</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" />
+<link rel="stylesheet" href="./tokens.css" />
+<style>
+/* ═══════════════════════════════════════════════
+   LANDING PAGE MOCKUP — Editorial Fintech + Bento
+   ═══════════════════════════════════════════════ */
+
+*,*::before,*::after { box-sizing: border-box; }
+html,body { margin:0; padding:0; }
+body {
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  line-height: var(--lh-relaxed);
+  color: var(--text-secondary);
+  background: var(--surface-page);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Aurora background gradient ── */
+.aurora {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background: var(--gradient-aurora);
+}
+.grid-bg {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    linear-gradient(var(--slate-200) 1px, transparent 1px),
+    linear-gradient(90deg, var(--slate-200) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse at 50% 0%, black 0%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 0%, black 0%, transparent 70%);
+  opacity: 0.5;
+}
+
+.wrap { max-width: 1240px; margin: 0 auto; padding: 0 var(--space-6); position: relative; z-index: 1; }
+
+/* ── Topbar ── */
+.topbar {
+  position: sticky; top: 0; z-index: var(--z-sticky);
+  background: var(--topbar-bg);
+  backdrop-filter: var(--topbar-blur);
+  -webkit-backdrop-filter: var(--topbar-blur);
+  border-bottom: 1px solid var(--border-default);
+}
+.topbar-inner {
+  height: var(--topbar-height);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--font-display);
+  font-weight: 700; font-size: 18px; letter-spacing: -0.02em;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+.brand-mark {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: var(--gradient-brand);
+  display: grid; place-items: center;
+  box-shadow: var(--shadow-md);
+  position: relative; overflow: hidden;
+}
+.brand-mark::after {
+  content: ""; position: absolute; inset: 4px;
+  border-radius: 6px;
+  border: 2px solid rgba(255,255,255,0.75);
+  border-right-color: transparent; border-bottom-color: transparent;
+}
+.nav-main { display: flex; gap: 4px; align-items: center; }
+.nav-main a {
+  padding: 8px 14px; border-radius: var(--radius-sm);
+  font-size: var(--fs-sm); font-weight: 500; color: var(--text-secondary);
+  text-decoration: none; transition: all var(--dur-fast) var(--ease-out);
+}
+.nav-main a:hover { color: var(--text-primary); background: var(--slate-100); }
+.nav-main a.active { color: var(--color-primary); }
+.topbar-cta { display: flex; gap: 10px; align-items: center; }
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: var(--btn-height-md); padding: 0 var(--btn-padding-x);
+  border-radius: var(--btn-radius); border: 1px solid transparent;
+  font-family: var(--font-sans); font-size: var(--btn-font-size); font-weight: var(--btn-font-weight);
+  text-decoration: none; cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-out);
+  white-space: nowrap;
+}
+.btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.btn-primary {
+  background: var(--btn-primary-bg); color: var(--btn-primary-fg);
+  box-shadow: var(--btn-primary-shadow);
+}
+.btn-primary:hover { background: var(--btn-primary-bg-hover); transform: translateY(-1px); box-shadow: var(--glow-primary); }
+.btn-secondary {
+  background: var(--btn-secondary-bg); color: var(--btn-secondary-fg); border-color: var(--btn-secondary-border);
+}
+.btn-secondary:hover { background: var(--btn-secondary-bg-hover); border-color: var(--border-strong); }
+.btn-ghost { background: transparent; color: var(--btn-ghost-fg); }
+.btn-ghost:hover { background: var(--btn-ghost-bg-hover); color: var(--text-primary); }
+.btn-lg { height: var(--btn-height-lg); padding: 0 var(--space-6); font-size: var(--fs-base); }
+.btn-arrow::after {
+  content: "→"; transition: transform var(--dur-fast) var(--ease-out);
+}
+.btn-arrow:hover::after { transform: translateX(3px); }
+
+/* ═══════════════════════════════════════════════
+   HERO — Asymmetric editorial, not centered stock
+   ═══════════════════════════════════════════════ */
+.hero {
+  padding: var(--space-20) 0 var(--space-12);
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: var(--space-16);
+  align-items: center;
+}
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 14px 6px 6px; border-radius: var(--radius-full);
+  background: var(--color-primary-soft);
+  color: var(--color-primary); font-size: 12px; font-weight: 600;
+  margin-bottom: var(--space-6);
+  border: 1px solid var(--indigo-100);
+}
+.hero-eyebrow-tag {
+  background: var(--color-primary); color: #fff;
+  padding: 2px 8px; border-radius: var(--radius-full); font-size: 10px;
+  letter-spacing: var(--tracking-wider); text-transform: uppercase; font-weight: 700;
+}
+.hero h1 {
+  font-family: var(--font-display);
+  font-size: var(--fs-display);
+  font-weight: 700;
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tighter);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-5);
+}
+.hero h1 em {
+  font-style: normal; position: relative; display: inline-block;
+  background: var(--gradient-brand);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.hero h1 em::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -4px; height: 3px;
+  background: var(--gradient-brand); border-radius: 2px; opacity: 0.25;
+}
+.hero-lead {
+  font-size: var(--fs-lg); line-height: var(--lh-relaxed); color: var(--text-secondary);
+  max-width: 52ch; margin: 0 0 var(--space-8);
+}
+.hero-actions { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-bottom: var(--space-8); }
+.hero-meta {
+  display: flex; gap: var(--space-6); color: var(--text-tertiary); font-size: var(--fs-sm);
+  flex-wrap: wrap;
+}
+.hero-meta-item { display: flex; align-items: center; gap: 8px; }
+.hero-meta-item svg { color: var(--color-accent); flex-shrink: 0; }
+
+/* ── Hero visual: stacked QR preview + flow cards ── */
+.hero-visual { position: relative; height: 520px; }
+.hero-visual > * { position: absolute; }
+
+.qr-card {
+  top: 40px; right: 40px; width: 280px;
+  background: var(--qr-frame-bg); border: 1px solid var(--qr-frame-border);
+  border-radius: var(--qr-frame-radius); padding: var(--qr-frame-padding);
+  box-shadow: var(--shadow-xl);
+  transform: rotate(-3deg);
+}
+.qr-head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px;
+}
+.qr-head .label { font-size: 11px; font-weight: 700; color: var(--text-tertiary); letter-spacing: var(--tracking-wider); text-transform: uppercase; }
+.qr-head .amount { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--text-primary); }
+.qr-visual {
+  aspect-ratio: 1;
+  background: #fff; border-radius: var(--radius-md);
+  position: relative; overflow: hidden;
+  border: 1px solid var(--slate-100);
+  display: grid;
+  grid-template-columns: repeat(21, 1fr);
+  grid-template-rows: repeat(21, 1fr);
+  padding: 10px;
+  gap: 1px;
+}
+/* Synthetic QR — three corners + pattern */
+.qr-visual::before, .qr-visual::after, .qr-visual .qr-corner-bl {
+  content: ""; position: absolute; width: 52px; height: 52px;
+  border: 6px solid var(--qr-corner-color);
+  border-radius: 6px;
+  background:
+    radial-gradient(circle at center, var(--qr-corner-color) 0 9px, #fff 9px 18px);
+}
+.qr-visual::before { top: 12px; left: 12px; }
+.qr-visual::after  { top: 12px; right: 12px; }
+.qr-visual .qr-corner-bl { bottom: 12px; left: 12px; }
+.qr-cell {
+  background: var(--slate-900);
+  border-radius: 1px;
+}
+.qr-foot {
+  margin-top: 14px; display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px;
+  background: var(--color-accent-soft);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--emerald-200);
+  color: var(--emerald-700); font-weight: 600; font-size: 13px;
+}
+.qr-pulse {
+  width: 8px; height: 8px; border-radius: 999px; background: var(--emerald-500);
+  box-shadow: 0 0 0 0 rgba(16,185,129,0.5);
+  animation: pulse-ring 1.6s ease-out infinite;
+}
+
+/* floating mini cards */
+.float-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-lg);
+  display: flex; align-items: center; gap: 12px;
+  font-size: 13px;
+}
+.float-card .ico {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: grid; place-items: center; flex-shrink: 0;
+}
+.float-card .ico.ok { background: var(--emerald-50); color: var(--emerald-600); }
+.float-card .ico.warn { background: var(--amber-50); color: var(--amber-600); }
+.float-card .ico.brand { background: var(--indigo-50); color: var(--indigo-600); }
+.float-card strong { display: block; color: var(--text-primary); font-weight: 600; font-size: 13px; }
+.float-card span { font-size: 11px; color: var(--text-tertiary); }
+
+.fc-1 { top: 30px; left: 0; animation: float-slow 6s ease-in-out infinite; }
+.fc-2 { top: 320px; right: 0; transform: rotate(2deg); animation: float-slow 7s ease-in-out infinite reverse; }
+.fc-3 { bottom: 10px; left: 70px; animation: float-slow 8s ease-in-out infinite; }
+
+/* dotted connector */
+.connector {
+  top: 200px; left: 180px; width: 180px; height: 2px;
+  background: repeating-linear-gradient(90deg, var(--indigo-300) 0 6px, transparent 6px 12px);
+  opacity: 0.5;
+}
+
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.5); }
+  100% { box-shadow: 0 0 0 14px rgba(16,185,129,0); }
+}
+@keyframes float-slow {
+  0%,100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-8px) rotate(-1deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .qr-pulse, .fc-1, .fc-2, .fc-3 { animation: none; }
+}
+
+/* ═══════════════════════════════════════════════
+   TRUST STRIP
+   ═══════════════════════════════════════════════ */
+.trust {
+  padding: var(--space-8) 0;
+  border-top: 1px solid var(--border-default);
+  border-bottom: 1px solid var(--border-default);
+  background: var(--surface-default);
+}
+.trust-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-8); flex-wrap: wrap;
+}
+.trust-label {
+  font-size: 11px; font-weight: 700; color: var(--text-tertiary);
+  letter-spacing: var(--tracking-wider); text-transform: uppercase;
+}
+.trust-logos {
+  display: flex; gap: var(--space-10); align-items: center; flex-wrap: wrap;
+  color: var(--text-tertiary); font-weight: 700; font-family: var(--font-display);
+  font-size: 16px; opacity: 0.65;
+}
+
+/* ═══════════════════════════════════════════════
+   BENTO GRID — Features
+   ═══════════════════════════════════════════════ */
+.section { padding: var(--space-24) 0; }
+.section-head {
+  max-width: 720px; margin: 0 auto var(--space-12); text-align: center;
+}
+.section-eyebrow {
+  display: inline-block; font-size: 12px; font-weight: 700;
+  color: var(--color-primary); letter-spacing: var(--tracking-wider);
+  text-transform: uppercase; margin-bottom: var(--space-3);
+}
+.section-head h2 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3.5vw, 2.75rem);
+  font-weight: 700; letter-spacing: var(--tracking-tight);
+  color: var(--text-primary); line-height: var(--lh-tight);
+  margin: 0 0 var(--space-4);
+}
+.section-head p { font-size: var(--fs-lg); color: var(--text-secondary); margin: 0; }
+
+.bento {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-auto-rows: 180px;
+  gap: var(--space-5);
+}
+.bento-cell {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  position: relative; overflow: hidden;
+  transition: all var(--dur-base) var(--ease-out);
+  display: flex; flex-direction: column; justify-content: space-between;
+}
+.bento-cell:hover { border-color: var(--card-border-hover); box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.bento-cell h3 {
+  font-family: var(--font-display); font-size: 20px; font-weight: 700;
+  color: var(--text-primary); letter-spacing: var(--tracking-tight);
+  margin: 0 0 8px;
+}
+.bento-cell p { color: var(--text-secondary); font-size: var(--fs-sm); margin: 0; line-height: 1.6; }
+.bento-ico {
+  width: 44px; height: 44px; border-radius: var(--radius-md);
+  display: grid; place-items: center;
+  margin-bottom: var(--space-4);
+}
+.bento-tag {
+  font-size: 11px; font-weight: 700; letter-spacing: var(--tracking-wider);
+  text-transform: uppercase; color: var(--color-primary);
+}
+
+/* Cell sizing */
+.bento-pix      { grid-column: span 3; grid-row: span 2; background: linear-gradient(135deg, var(--indigo-950) 0%, var(--indigo-800) 100%); color: #fff; }
+.bento-invoice  { grid-column: span 3; grid-row: span 1; }
+.bento-billing  { grid-column: span 3; grid-row: span 1; }
+.bento-poll     { grid-column: span 2; grid-row: span 1; }
+.bento-types    { grid-column: span 2; grid-row: span 1; background: var(--color-primary-soft); border-color: var(--indigo-200); }
+.bento-zero     { grid-column: span 2; grid-row: span 1; }
+.bento-light    { grid-column: span 4; grid-row: span 1; background: linear-gradient(135deg, var(--emerald-50), #fff 70%); border-color: var(--emerald-200); }
+.bento-custom   { grid-column: span 2; grid-row: span 1; background: linear-gradient(135deg, var(--amber-50), #fff); border-color: var(--amber-200); }
+
+/* Dark PIX cell */
+.bento-pix h3, .bento-pix .bento-tag { color: #fff; }
+.bento-pix p { color: rgba(255,255,255,0.78); }
+.bento-pix .bento-tag { color: var(--emerald-300); }
+.bento-pix .bento-ico { background: rgba(255,255,255,0.12); color: var(--emerald-300); border: 1px solid rgba(255,255,255,0.15); }
+.bento-pix-visual {
+  position: absolute; right: -30px; bottom: -30px;
+  width: 220px; height: 220px;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(52,211,153,0.35), transparent 60%),
+    repeating-conic-gradient(from 45deg, rgba(255,255,255,0.05) 0 10deg, transparent 10deg 20deg);
+  border-radius: var(--radius-2xl);
+  opacity: 0.8;
+}
+
+/* Bento icon colors */
+.bc-emerald { background: var(--emerald-50); color: var(--emerald-600); }
+.bc-indigo  { background: var(--indigo-100); color: var(--indigo-700); }
+.bc-amber   { background: var(--amber-100); color: var(--amber-700); }
+.bc-sky     { background: var(--sky-50); color: var(--sky-600); }
+
+/* ═══════════════════════════════════════════════
+   INSTALL / CODE SNIPPET
+   ═══════════════════════════════════════════════ */
+.install {
+  background: var(--slate-900);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-10);
+  color: #E2E8F0;
+  position: relative;
+  overflow: hidden;
+}
+.install::before {
+  content: ""; position: absolute; inset: 0;
+  background:
+    radial-gradient(600px 300px at 10% 0%, rgba(99,102,241,0.22), transparent 60%),
+    radial-gradient(500px 300px at 90% 100%, rgba(16,185,129,0.14), transparent 60%);
+  pointer-events: none;
+}
+.install-inner { position: relative; display: grid; grid-template-columns: 1fr 1.2fr; gap: var(--space-12); align-items: center; }
+.install h2 {
+  font-family: var(--font-display); font-size: 2.2rem; font-weight: 700;
+  letter-spacing: -0.03em; color: #fff; margin: 0 0 var(--space-4);
+  line-height: 1.1;
+}
+.install p { color: rgba(255,255,255,0.68); font-size: var(--fs-base); margin: 0 0 var(--space-6); }
+
+.tabs {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.tabs-head { display: flex; gap: 2px; padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.tab {
+  padding: 6px 14px; font-size: 12px; font-weight: 600;
+  color: rgba(255,255,255,0.5); border-radius: var(--radius-sm); cursor: pointer;
+  background: transparent; border: none; font-family: var(--font-sans);
+}
+.tab.active { background: rgba(255,255,255,0.08); color: #fff; }
+.tabs-body {
+  padding: var(--space-6);
+  font-family: var(--font-mono); font-size: 13px; line-height: 1.8;
+  overflow-x: auto;
+}
+.tk-key   { color: #C7D2FE; }   /* indigo-200 */
+.tk-str   { color: #6EE7B7; }   /* emerald-300 */
+.tk-fn    { color: #FBBF24; }   /* amber-400 */
+.tk-com   { color: rgba(255,255,255,0.35); font-style: italic; }
+.tk-punct { color: rgba(255,255,255,0.55); }
+
+/* ═══════════════════════════════════════════════
+   FEATURE WALKTHROUGH — alternating sections
+   ═══════════════════════════════════════════════ */
+.walk {
+  display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-16);
+  align-items: center; padding: var(--space-16) 0;
+  border-top: 1px solid var(--border-default);
+}
+.walk.reverse { direction: rtl; }
+.walk.reverse > * { direction: ltr; }
+.walk-copy .section-eyebrow { color: var(--color-accent); }
+.walk-copy h3 {
+  font-family: var(--font-display); font-size: 2rem; font-weight: 700;
+  color: var(--text-primary); letter-spacing: var(--tracking-tight);
+  line-height: 1.2; margin: var(--space-3) 0 var(--space-4);
+}
+.walk-copy p { font-size: var(--fs-md); color: var(--text-secondary); margin: 0 0 var(--space-6); }
+.walk-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-3); }
+.walk-list li {
+  display: flex; gap: 10px; align-items: flex-start;
+  font-size: var(--fs-sm); color: var(--text-secondary);
+}
+.walk-list li::before {
+  content: ""; width: 18px; height: 18px; border-radius: 6px;
+  background: var(--color-accent-soft); flex-shrink: 0; margin-top: 2px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23059669' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>");
+  background-repeat: no-repeat; background-position: center;
+}
+
+/* demo dashboard preview */
+.preview-frame {
+  background: #fff;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+}
+.pf-bar { display: flex; gap: 6px; padding: 10px 14px; background: var(--slate-50); border-bottom: 1px solid var(--border-default); }
+.pf-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--slate-300); }
+.pf-body { padding: var(--space-5); }
+.pf-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+.pf-metric { background: var(--slate-50); border-radius: var(--radius-md); padding: 12px; border: 1px solid var(--border-subtle); }
+.pf-metric-label { font-size: 10px; color: var(--text-tertiary); text-transform: uppercase; font-weight: 700; letter-spacing: var(--tracking-wider); }
+.pf-metric-value { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--text-primary); margin-top: 4px; }
+.pf-chart { height: 120px; border-radius: var(--radius-md); background: linear-gradient(180deg, var(--indigo-50), #fff); position: relative; overflow: hidden; border: 1px solid var(--border-subtle); }
+.pf-chart::before {
+  content: ""; position: absolute; inset: 0;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 120' preserveAspectRatio='none'><path d='M 0 90 L 30 80 L 60 85 L 90 60 L 120 70 L 150 50 L 180 55 L 210 35 L 240 40 L 270 25 L 300 20' stroke='%234F46E5' stroke-width='2.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/><path d='M 0 90 L 30 80 L 60 85 L 90 60 L 120 70 L 150 50 L 180 55 L 210 35 L 240 40 L 270 25 L 300 20 L 300 120 L 0 120 Z' fill='url(%23g)' opacity='0.2'/><defs><linearGradient id='g' x1='0' x2='0' y1='0' y2='1'><stop offset='0%25' stop-color='%234F46E5'/><stop offset='100%25' stop-color='%234F46E5' stop-opacity='0'/></linearGradient></defs></svg>") center/100% 100% no-repeat;
+}
+.pf-table { width: 100%; font-size: 12px; border-collapse: collapse; margin-top: 14px; }
+.pf-table th { text-align: left; font-size: 10px; color: var(--text-tertiary); padding: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: var(--tracking-wider); }
+.pf-table td { padding: 10px 8px; border-top: 1px solid var(--border-subtle); color: var(--text-primary); }
+.pf-badge { display: inline-block; padding: 2px 10px; border-radius: var(--radius-full); font-size: 10px; font-weight: 600; background: var(--emerald-50); color: var(--emerald-700); }
+.pf-badge.warn { background: var(--amber-50); color: var(--amber-700); }
+
+/* ═══════════════════════════════════════════════
+   STATS STRIP
+   ═══════════════════════════════════════════════ */
+.stats {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 0;
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+.stat { padding: var(--space-8); border-right: 1px solid var(--border-default); }
+.stat:last-child { border-right: none; }
+.stat-value {
+  font-family: var(--font-display); font-size: 2.4rem; font-weight: 700;
+  color: var(--text-primary); letter-spacing: -0.03em; line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.stat-value .unit { font-size: 1.2rem; color: var(--text-tertiary); font-weight: 600; }
+.stat-label { font-size: 12px; color: var(--text-tertiary); margin-top: 8px; font-weight: 500; }
+
+/* ═══════════════════════════════════════════════
+   CTA BLOCK
+   ═══════════════════════════════════════════════ */
+.cta {
+  position: relative;
+  background: var(--gradient-brand);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-16);
+  color: #fff;
+  overflow: hidden;
+  text-align: center;
+}
+.cta::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(600px 300px at 80% 20%, rgba(255,255,255,0.22), transparent 60%),
+    radial-gradient(500px 300px at 20% 100%, rgba(16,185,129,0.3), transparent 60%);
+}
+.cta > * { position: relative; }
+.cta h2 {
+  font-family: var(--font-display); font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700; letter-spacing: -0.035em; line-height: 1.1;
+  color: #fff; max-width: 780px; margin: 0 auto var(--space-4);
+}
+.cta p { color: rgba(255,255,255,0.82); font-size: var(--fs-lg); max-width: 580px; margin: 0 auto var(--space-8); }
+.cta .btn-primary { background: #fff; color: var(--indigo-700); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+.cta .btn-primary:hover { background: #fff; box-shadow: 0 12px 32px rgba(0,0,0,0.18); transform: translateY(-2px); }
+.cta .btn-secondary { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.25); }
+.cta .btn-secondary:hover { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.4); }
+
+/* ═══════════════════════════════════════════════
+   FOOTER
+   ═══════════════════════════════════════════════ */
+.footer {
+  padding: var(--space-16) 0 var(--space-8);
+  border-top: 1px solid var(--border-default);
+  margin-top: var(--space-24);
+}
+.footer-grid { display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: var(--space-8); margin-bottom: var(--space-12); }
+.footer-col h4 { font-family: var(--font-display); font-size: 13px; color: var(--text-primary); margin: 0 0 var(--space-4); font-weight: 700; }
+.footer-col a { display: block; padding: 4px 0; font-size: 13px; color: var(--text-secondary); text-decoration: none; }
+.footer-col a:hover { color: var(--color-primary); }
+.footer-about p { font-size: var(--fs-sm); margin-top: var(--space-3); max-width: 32ch; }
+.footer-bottom {
+  padding-top: var(--space-6); border-top: 1px solid var(--border-default);
+  display: flex; justify-content: space-between; font-size: 12px; color: var(--text-tertiary);
+}
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .hero { grid-template-columns: 1fr; }
+  .hero-visual { height: 480px; margin-top: var(--space-8); }
+  .bento { grid-template-columns: repeat(4, 1fr); }
+  .bento-pix { grid-column: span 4; }
+  .bento-invoice, .bento-billing { grid-column: span 2; }
+  .bento-poll, .bento-types, .bento-zero { grid-column: span 2; }
+  .bento-light { grid-column: span 4; }
+  .bento-custom { grid-column: span 4; }
+  .install-inner { grid-template-columns: 1fr; }
+  .walk, .walk.reverse { grid-template-columns: 1fr; direction: ltr; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .stat:nth-child(2) { border-right: none; }
+  .footer-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .nav-main a:not(.primary) { display: none; }
+  .hero { padding: var(--space-12) 0 var(--space-8); }
+  .bento { grid-template-columns: 1fr; grid-auto-rows: auto; }
+  .bento-cell { min-height: 160px; grid-column: span 1 !important; }
+  .section { padding: var(--space-16) 0; }
+  .install { padding: var(--space-6); }
+  .stats { grid-template-columns: 1fr; }
+  .stat { border-right: none; border-bottom: 1px solid var(--border-default); }
+  .cta { padding: var(--space-10) var(--space-6); }
+  .footer-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="aurora" aria-hidden="true"></div>
+<div class="grid-bg" aria-hidden="true"></div>
+
+<!-- ═══ TOPBAR ═══ -->
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a href="#" class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      ProxyPay
+    </a>
+    <nav class="nav-main" aria-label="Primary">
+      <a href="#" class="active">Produto</a>
+      <a href="#">Demos</a>
+      <a href="#">Documentação</a>
+      <a href="#">Preços</a>
+    </nav>
+    <div class="topbar-cta">
+      <a href="#" class="btn btn-ghost">Entrar</a>
+      <a href="#" class="btn btn-primary">Começar grátis</a>
+    </div>
+  </div>
+</header>
+
+<!-- ═══ HERO ═══ -->
+<section class="wrap hero">
+  <div class="hero-copy">
+    <div class="hero-eyebrow">
+      <span class="hero-eyebrow-tag">v0.2</span>
+      React + TypeScript · zero dependências
+    </div>
+    <h1>
+      Pagamentos brasileiros,<br>
+      em <em>três componentes</em>.
+    </h1>
+    <p class="hero-lead">
+      PIX com QR Code, faturas com redirect e cobranças recorrentes
+      — tipados, leves e prontos para plugar no seu React.
+      Você escreve a regra de negócio, a gente cuida do fluxo.
+    </p>
+    <div class="hero-actions">
+      <a href="#" class="btn btn-primary btn-lg btn-arrow">Abrir demo do PIX</a>
+      <a href="#" class="btn btn-secondary btn-lg">Ler a documentação</a>
+    </div>
+    <div class="hero-meta">
+      <span class="hero-meta-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        8 KB gzipped
+      </span>
+      <span class="hero-meta-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        ESM + CJS + tipos
+      </span>
+      <span class="hero-meta-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Multi-tenant via header
+      </span>
+    </div>
+  </div>
+
+  <div class="hero-visual" aria-hidden="true">
+    <div class="connector"></div>
+
+    <!-- Floating card 1 -->
+    <div class="float-card fc-1">
+      <div class="ico brand">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <div>
+        <strong>Checkout criado</strong>
+        <span>invoice #BR-4821</span>
+      </div>
+    </div>
+
+    <!-- QR Card -->
+    <div class="qr-card">
+      <div class="qr-head">
+        <span class="label">PIX · R$</span>
+        <span class="amount">249,90</span>
+      </div>
+      <div class="qr-visual">
+        <span class="qr-corner-bl"></span>
+        <!-- synthetic qr dots -->
+        <!-- 21x21 grid: render some filled cells -->
+        <!-- Row 1 -->
+        <!-- Handled via pseudo + these spans -->
+        <span class="qr-cell" style="grid-area: 5/7"></span>
+        <span class="qr-cell" style="grid-area: 5/8"></span>
+        <span class="qr-cell" style="grid-area: 5/10"></span>
+        <span class="qr-cell" style="grid-area: 5/12"></span>
+        <span class="qr-cell" style="grid-area: 5/13"></span>
+        <span class="qr-cell" style="grid-area: 5/15"></span>
+        <span class="qr-cell" style="grid-area: 6/8"></span>
+        <span class="qr-cell" style="grid-area: 6/9"></span>
+        <span class="qr-cell" style="grid-area: 6/11"></span>
+        <span class="qr-cell" style="grid-area: 6/13"></span>
+        <span class="qr-cell" style="grid-area: 6/14"></span>
+        <span class="qr-cell" style="grid-area: 7/7"></span>
+        <span class="qr-cell" style="grid-area: 7/10"></span>
+        <span class="qr-cell" style="grid-area: 7/12"></span>
+        <span class="qr-cell" style="grid-area: 7/15"></span>
+        <span class="qr-cell" style="grid-area: 8/8"></span>
+        <span class="qr-cell" style="grid-area: 8/9"></span>
+        <span class="qr-cell" style="grid-area: 8/11"></span>
+        <span class="qr-cell" style="grid-area: 8/13"></span>
+        <span class="qr-cell" style="grid-area: 8/14"></span>
+        <span class="qr-cell" style="grid-area: 9/7"></span>
+        <span class="qr-cell" style="grid-area: 9/10"></span>
+        <span class="qr-cell" style="grid-area: 9/12"></span>
+        <span class="qr-cell" style="grid-area: 9/13"></span>
+        <span class="qr-cell" style="grid-area: 10/7"></span>
+        <span class="qr-cell" style="grid-area: 10/8"></span>
+        <span class="qr-cell" style="grid-area: 10/10"></span>
+        <span class="qr-cell" style="grid-area: 10/14"></span>
+        <span class="qr-cell" style="grid-area: 10/15"></span>
+        <span class="qr-cell" style="grid-area: 11/9"></span>
+        <span class="qr-cell" style="grid-area: 11/11"></span>
+        <span class="qr-cell" style="grid-area: 11/12"></span>
+        <span class="qr-cell" style="grid-area: 11/13"></span>
+        <span class="qr-cell" style="grid-area: 12/7"></span>
+        <span class="qr-cell" style="grid-area: 12/8"></span>
+        <span class="qr-cell" style="grid-area: 12/10"></span>
+        <span class="qr-cell" style="grid-area: 12/14"></span>
+        <span class="qr-cell" style="grid-area: 13/9"></span>
+        <span class="qr-cell" style="grid-area: 13/11"></span>
+        <span class="qr-cell" style="grid-area: 13/12"></span>
+        <span class="qr-cell" style="grid-area: 13/15"></span>
+        <span class="qr-cell" style="grid-area: 14/7"></span>
+        <span class="qr-cell" style="grid-area: 14/8"></span>
+        <span class="qr-cell" style="grid-area: 14/13"></span>
+        <span class="qr-cell" style="grid-area: 14/14"></span>
+        <span class="qr-cell" style="grid-area: 15/10"></span>
+        <span class="qr-cell" style="grid-area: 15/12"></span>
+        <span class="qr-cell" style="grid-area: 15/14"></span>
+      </div>
+      <div class="qr-foot">
+        <span class="qr-pulse"></span>
+        Aguardando pagamento
+      </div>
+    </div>
+
+    <!-- Floating card 2 -->
+    <div class="float-card fc-2">
+      <div class="ico ok">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div>
+        <strong>Pago em 4.2s</strong>
+        <span>via PIX — R$ 249,90</span>
+      </div>
+    </div>
+
+    <!-- Floating card 3 -->
+    <div class="float-card fc-3">
+      <div class="ico warn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
+      </div>
+      <div>
+        <strong>+R$ 12.480 hoje</strong>
+        <span>63 transações</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ TRUST STRIP ═══ -->
+<section class="trust">
+  <div class="wrap trust-inner">
+    <span class="trust-label">Construído sobre métodos brasileiros</span>
+    <div class="trust-logos">
+      <span>PIX</span>
+      <span>Boleto</span>
+      <span>Recorrência</span>
+      <span>Multi-tenant</span>
+      <span>GraphQL</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ BENTO FEATURES ═══ -->
+<section class="wrap section">
+  <header class="section-head">
+    <span class="section-eyebrow">A biblioteca</span>
+    <h2>Tudo que você precisaria construir — já construído.</h2>
+    <p>Componentes pequenos e compostos, cada um com responsabilidade clara. Plugue só o que usar, ignore o resto.</p>
+  </header>
+
+  <div class="bento">
+    <!-- Hero cell: PIX -->
+    <article class="bento-cell bento-pix">
+      <div>
+        <span class="bento-tag">⚡ principal</span>
+        <h3 style="margin-top:10px;">&lt;PixPayment /&gt; — QR em 250ms</h3>
+        <p>Gera o QR Code, abre o modal, faz polling até confirmar. Você só precisa passar <code style="background:rgba(255,255,255,0.08); color:#6EE7B7; padding:2px 6px; border-radius:4px; font-size:12px;">customer</code> e <code style="background:rgba(255,255,255,0.08); color:#6EE7B7; padding:2px 6px; border-radius:4px; font-size:12px;">items</code>.</p>
+      </div>
+      <div class="bento-pix-visual" aria-hidden="true"></div>
+    </article>
+
+    <article class="bento-cell bento-invoice">
+      <div class="bento-ico bc-indigo">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      </div>
+      <div>
+        <h3>&lt;InvoicePayment /&gt;</h3>
+        <p>Redirect para checkout de fatura única. Retorna o status via callback.</p>
+      </div>
+    </article>
+
+    <article class="bento-cell bento-billing">
+      <div class="bento-ico bc-emerald">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      </div>
+      <div>
+        <h3>&lt;BillingPayment /&gt;</h3>
+        <p>Cobranças recorrentes com gestão automática de ciclos e inadimplência.</p>
+      </div>
+    </article>
+
+    <article class="bento-cell bento-poll">
+      <div class="bento-ico bc-emerald">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div>
+        <h3>Polling nativo</h3>
+        <p>Intervalo configurável. Detecta expiração e cancelamento.</p>
+      </div>
+    </article>
+
+    <article class="bento-cell bento-types">
+      <div class="bento-ico bc-indigo">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      </div>
+      <div>
+        <h3>100% tipado</h3>
+        <p>Interfaces exportadas para <code>Customer</code>, <code>InvoiceItem</code> e respostas.</p>
+      </div>
+    </article>
+
+    <article class="bento-cell bento-zero">
+      <div class="bento-ico bc-sky">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      </div>
+      <div>
+        <h3>Zero dependências</h3>
+        <p>Só React como peer. Sem lib de QR, sem lib de modal.</p>
+      </div>
+    </article>
+
+    <article class="bento-cell bento-light">
+      <div class="bento-ico bc-emerald">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </div>
+      <div>
+        <h3>8 KB gzipped · ESM + CJS com tree-shaking</h3>
+        <p>Pronto para produção. Testado em React 18 e 19, Next.js, Vite, Remix.</p>
+      </div>
+    </article>
+
+    <article class="bento-cell bento-custom">
+      <div class="bento-ico bc-amber">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+      </div>
+      <div>
+        <h3>Tema livre</h3>
+        <p>Passe suas classes CSS. Zero opinião de design.</p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ═══ INSTALL + CODE ═══ -->
+<section class="wrap">
+  <div class="install">
+    <div class="install-inner">
+      <div>
+        <span class="section-eyebrow" style="color: var(--emerald-300);">5 linhas</span>
+        <h2>Do <code style="background:transparent; color: var(--amber-300); padding:0;">npm install</code> ao primeiro pagamento.</h2>
+        <p>Instale, envolva seu app com o Provider e chame o componente. A gente cuida do resto — gera o QR, escuta o webhook, devolve o status.</p>
+        <a href="#" class="btn btn-primary btn-lg btn-arrow">Ver exemplo completo</a>
+      </div>
+      <div class="tabs">
+        <div class="tabs-head">
+          <button class="tab active">React</button>
+          <button class="tab">Next.js</button>
+          <button class="tab">Install</button>
+        </div>
+        <div class="tabs-body">
+<pre style="margin:0; font-family: inherit; color: #fff;"><span class="tk-com">// 1. Envolva seu app</span>
+<span class="tk-key">import</span> <span class="tk-punct">{</span> ProxyPayProvider<span class="tk-punct">,</span> PixPayment <span class="tk-punct">}</span> <span class="tk-key">from</span> <span class="tk-str">"proxypay-react"</span><span class="tk-punct">;</span>
+
+<span class="tk-punct">&lt;</span><span class="tk-fn">ProxyPayProvider</span> config<span class="tk-punct">={{</span>
+  baseUrl<span class="tk-punct">:</span> <span class="tk-str">"https://api.proxypay.co.ao"</span><span class="tk-punct">,</span>
+  clientId<span class="tk-punct">:</span> <span class="tk-str">"srv-123"</span><span class="tk-punct">,</span>
+  tenantId<span class="tk-punct">:</span> <span class="tk-str">"my-store"</span><span class="tk-punct">,</span>
+<span class="tk-punct">}}&gt;</span>
+  <span class="tk-punct">&lt;</span><span class="tk-fn">PixPayment</span>
+    customer<span class="tk-punct">={</span>customer<span class="tk-punct">}</span>
+    items<span class="tk-punct">={</span>items<span class="tk-punct">}</span>
+    onSuccess<span class="tk-punct">={(</span>status<span class="tk-punct">) =&gt;</span> console<span class="tk-punct">.</span>log<span class="tk-punct">(</span><span class="tk-str">"Pago!"</span><span class="tk-punct">,</span> status<span class="tk-punct">)}</span>
+  <span class="tk-punct">&gt;</span>
+    <span class="tk-punct">&lt;</span>button<span class="tk-punct">&gt;</span>Pagar com PIX<span class="tk-punct">&lt;/</span>button<span class="tk-punct">&gt;</span>
+  <span class="tk-punct">&lt;/</span><span class="tk-fn">PixPayment</span><span class="tk-punct">&gt;</span>
+<span class="tk-punct">&lt;/</span><span class="tk-fn">ProxyPayProvider</span><span class="tk-punct">&gt;</span></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ WALKTHROUGH — PIX + Dashboard ═══ -->
+<section class="wrap">
+  <div class="walk">
+    <div class="walk-copy">
+      <span class="section-eyebrow">PIX fluxo</span>
+      <h3>Um modal. Três estados. Zero refactor.</h3>
+      <p>O componente <code>&lt;PixPayment&gt;</code> abstrai todo o fluxo: gera o QR, exibe o modal, escuta o status e chama seu callback quando o cliente paga.</p>
+      <ul class="walk-list">
+        <li>QR Code renderizado inline — sem lib extra de canvas</li>
+        <li>Intervalo de polling configurável (padrão: 10s)</li>
+        <li>Callbacks <code>onSuccess</code>, <code>onError</code>, <code>onStatusChange</code></li>
+        <li>Modal totalmente customizável via className</li>
+      </ul>
+    </div>
+    <div class="walk-visual">
+      <div class="preview-frame" style="max-width: 440px; margin: 0 auto;">
+        <div class="pf-bar"><span class="pf-dot"></span><span class="pf-dot"></span><span class="pf-dot"></span></div>
+        <div class="pf-body">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+            <strong style="font-family: var(--font-display); font-size: 15px; color: var(--text-primary);">Pagamento PIX</strong>
+            <span class="pf-badge">aguardando</span>
+          </div>
+          <div class="qr-visual" style="position:relative; margin: 0 auto 14px; max-width: 220px;">
+            <span class="qr-corner-bl"></span>
+            <span class="qr-cell" style="grid-area: 5/7"></span>
+            <span class="qr-cell" style="grid-area: 5/10"></span>
+            <span class="qr-cell" style="grid-area: 5/13"></span>
+            <span class="qr-cell" style="grid-area: 6/8"></span>
+            <span class="qr-cell" style="grid-area: 6/11"></span>
+            <span class="qr-cell" style="grid-area: 7/7"></span>
+            <span class="qr-cell" style="grid-area: 7/14"></span>
+            <span class="qr-cell" style="grid-area: 8/9"></span>
+            <span class="qr-cell" style="grid-area: 8/13"></span>
+            <span class="qr-cell" style="grid-area: 9/10"></span>
+            <span class="qr-cell" style="grid-area: 9/12"></span>
+            <span class="qr-cell" style="grid-area: 10/8"></span>
+            <span class="qr-cell" style="grid-area: 11/11"></span>
+            <span class="qr-cell" style="grid-area: 12/7"></span>
+            <span class="qr-cell" style="grid-area: 12/14"></span>
+            <span class="qr-cell" style="grid-area: 13/9"></span>
+            <span class="qr-cell" style="grid-area: 13/13"></span>
+            <span class="qr-cell" style="grid-area: 14/10"></span>
+            <span class="qr-cell" style="grid-area: 15/12"></span>
+          </div>
+          <div style="text-align:center; font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary); padding: 10px; background: var(--slate-50); border-radius: 8px; border: 1px solid var(--border-subtle); word-break: break-all;">
+            00020126580014BR.GOV.BCB.PIX01...
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="walk reverse">
+    <div class="walk-copy">
+      <span class="section-eyebrow">Dashboard</span>
+      <h3>Painel admin para o merchant — incluso.</h3>
+      <p>O example-app vem com um painel completo: configuração de loja, clientes, faturas, cobranças recorrentes e saldo. Use como referência, como base, ou copie inteiro.</p>
+      <ul class="walk-list">
+        <li>Autenticação via <code>nauth-react</code></li>
+        <li>GraphQL para leituras, REST para mutações</li>
+        <li>Arquitetura em camadas: types → service → context → hook → page</li>
+        <li>Tudo tipado, documentado, pronto para copiar</li>
+      </ul>
+    </div>
+    <div class="walk-visual">
+      <div class="preview-frame">
+        <div class="pf-bar"><span class="pf-dot"></span><span class="pf-dot"></span><span class="pf-dot"></span></div>
+        <div class="pf-body">
+          <div class="pf-row">
+            <div class="pf-metric">
+              <div class="pf-metric-label">Saldo</div>
+              <div class="pf-metric-value">R$ 48.230</div>
+            </div>
+            <div class="pf-metric">
+              <div class="pf-metric-label">Créditos</div>
+              <div class="pf-metric-value" style="color: var(--emerald-600);">+12.480</div>
+            </div>
+            <div class="pf-metric">
+              <div class="pf-metric-label">Trans.</div>
+              <div class="pf-metric-value">1.204</div>
+            </div>
+          </div>
+          <div class="pf-chart"></div>
+          <table class="pf-table">
+            <thead>
+              <tr><th>Cliente</th><th>Valor</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Maria Santos</td><td>R$ 249,90</td><td><span class="pf-badge">pago</span></td></tr>
+              <tr><td>João Oliveira</td><td>R$ 89,00</td><td><span class="pf-badge warn">pendente</span></td></tr>
+              <tr><td>Camila Rocha</td><td>R$ 1.280,00</td><td><span class="pf-badge">pago</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ STATS ═══ -->
+<section class="wrap section">
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-value">8<span class="unit">KB</span></div>
+      <div class="stat-label">gzipped no bundle final</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">3</div>
+      <div class="stat-label">componentes, uma API</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">250<span class="unit">ms</span></div>
+      <div class="stat-label">média para abrir o QR</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">0</div>
+      <div class="stat-label">runtime dependencies</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CTA ═══ -->
+<section class="wrap section">
+  <div class="cta">
+    <h2>Pronto para aceitar pagamentos em 5 minutos?</h2>
+    <p>Clone o example-app, configure suas credenciais e rode <code style="background:rgba(255,255,255,0.14); color:#fff; padding:2px 8px; border-radius:6px;">npm run dev</code>. Produção ready em um commit.</p>
+    <div style="display:flex; gap:12px; justify-content:center; flex-wrap: wrap;">
+      <a href="#" class="btn btn-primary btn-lg btn-arrow">Começar agora</a>
+      <a href="#" class="btn btn-secondary btn-lg">Ver no GitHub</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-col footer-about">
+        <a href="#" class="brand"><span class="brand-mark"></span> ProxyPay</a>
+        <p>Biblioteca React para pagamentos brasileiros. PIX, boleto, recorrência — tudo em três componentes.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Produto</h4>
+        <a href="#">PIX</a>
+        <a href="#">Invoice</a>
+        <a href="#">Billing</a>
+        <a href="#">Dashboard</a>
+      </div>
+      <div class="footer-col">
+        <h4>Developers</h4>
+        <a href="#">Documentação</a>
+        <a href="#">API Reference</a>
+        <a href="#">GitHub</a>
+        <a href="#">Changelog</a>
+      </div>
+      <div class="footer-col">
+        <h4>Empresa</h4>
+        <a href="#">Emagine</a>
+        <a href="#">Contato</a>
+        <a href="#">Status</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Emagine · MIT License</span>
+      <span>Feito com <span style="color: var(--color-accent);">▲</span> em São Paulo</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
