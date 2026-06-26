@@ -30,19 +30,19 @@ namespace ProxyPay.Infra.AppServices
             _logger = logger;
         }
 
-        private HttpClient CreateClient()
+        private HttpClient CreateClient(string apiKey)
         {
             var client = new HttpClient(new HttpClientHandler
             {
                 ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
             });
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _settings.ApiKey);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
             return client;
         }
 
-        private async Task<T> PostAsync<T>(string endpoint, object request)
+        private async Task<T> PostAsync<T>(string endpoint, object request, string apiKey)
         {
-            using var client = CreateClient();
+            using var client = CreateClient(apiKey);
             var requestJson = JsonConvert.SerializeObject(request, _jsonSettings);
             _logger.LogInformation("AbacatePay POST {Endpoint} | Request: {Request}", endpoint, requestJson);
 
@@ -59,9 +59,9 @@ namespace ProxyPay.Infra.AppServices
             return JsonConvert.DeserializeObject<T>(responseJson);
         }
 
-        private async Task<T> GetAsync<T>(string endpoint)
+        private async Task<T> GetAsync<T>(string endpoint, string apiKey)
         {
-            using var client = CreateClient();
+            using var client = CreateClient(apiKey);
             _logger.LogInformation("AbacatePay GET {Endpoint}", endpoint);
 
             var response = await client.GetAsync($"{_settings.ApiUrl}{endpoint}");
@@ -76,24 +76,24 @@ namespace ProxyPay.Infra.AppServices
             return JsonConvert.DeserializeObject<T>(responseJson);
         }
 
-        public async Task<AbacatePayResponse<BillingInfo>> CreateBillingAsync(BillingCreateRequest request)
+        public async Task<AbacatePayResponse<BillingInfo>> CreateBillingAsync(BillingCreateRequest request, string apiKey)
         {
-            return await PostAsync<AbacatePayResponse<BillingInfo>>("/v1/billing/create", request);
+            return await PostAsync<AbacatePayResponse<BillingInfo>>("/v1/billing/create", request, apiKey);
         }
 
-        public async Task<AbacatePayResponse<PixQrCodeInfo>> CreatePixQrCodeAsync(PixQrCodeCreateRequest request)
+        public async Task<AbacatePayResponse<PixQrCodeInfo>> CreatePixQrCodeAsync(PixQrCodeCreateRequest request, string apiKey)
         {
-            return await PostAsync<AbacatePayResponse<PixQrCodeInfo>>("/v1/pixQrCode/create", request);
+            return await PostAsync<AbacatePayResponse<PixQrCodeInfo>>("/v1/pixQrCode/create", request, apiKey);
         }
 
-        public async Task<AbacatePayResponse<PixQrCodeStatusInfo>> CheckStatusAsync(string id)
+        public async Task<AbacatePayResponse<PixQrCodeStatusInfo>> CheckStatusAsync(string id, string apiKey)
         {
-            return await GetAsync<AbacatePayResponse<PixQrCodeStatusInfo>>($"/v1/pixQrCode/check?id={id}");
+            return await GetAsync<AbacatePayResponse<PixQrCodeStatusInfo>>($"/v1/pixQrCode/check?id={id}", apiKey);
         }
 
-        public async Task<AbacatePayResponse<PixQrCodeInfo>> SimulatePaymentAsync(string id)
+        public async Task<AbacatePayResponse<PixQrCodeInfo>> SimulatePaymentAsync(string id, string apiKey)
         {
-            return await PostAsync<AbacatePayResponse<PixQrCodeInfo>>($"/v1/pixQrCode/simulate-payment?id={id}", new { });
+            return await PostAsync<AbacatePayResponse<PixQrCodeInfo>>($"/v1/pixQrCode/simulate-payment?id={id}", new { }, apiKey);
         }
     }
 }

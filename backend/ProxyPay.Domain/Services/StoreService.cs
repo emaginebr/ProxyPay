@@ -73,6 +73,18 @@ namespace ProxyPay.Domain.Services
             return await _storeRepository.UpdateAsync(existing);
         }
 
+        public async Task UpdateAbacatePayApiKeyAsync(long storeId, string apiKey, long userId)
+        {
+            var existing = await _storeRepository.GetByIdAsync(storeId);
+            if (existing == null)
+                throw new Exception("Store not found");
+
+            existing.ValidateOwnership(userId);
+            existing.SetAbacatePayApiKey(apiKey);
+
+            await _storeRepository.UpdateAsync(existing);
+        }
+
         public async Task DeleteAsync(long storeId, long userId)
         {
             var existing = await _storeRepository.GetByIdAsync(storeId);

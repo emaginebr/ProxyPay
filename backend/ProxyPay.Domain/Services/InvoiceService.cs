@@ -20,6 +20,7 @@ namespace ProxyPay.Domain.Services
     {
         private readonly IInvoiceRepository<InvoiceModel> _invoiceRepository;
         private readonly IInvoiceItemRepository<InvoiceItemModel> _invoiceItemRepository;
+        private readonly IStoreRepository<StoreModel> _storeRepository;
         private readonly IAbacatePayAppService _abacatePayAppService;
         private readonly IValidator<InvoiceRequest> _invoiceInsertValidator;
         private readonly IValidator<QRCodeRequest> _qrCodeRequestValidator;
@@ -29,6 +30,7 @@ namespace ProxyPay.Domain.Services
         public InvoiceService(
             IInvoiceRepository<InvoiceModel> invoiceRepository,
             IInvoiceItemRepository<InvoiceItemModel> invoiceItemRepository,
+            IStoreRepository<StoreModel> storeRepository,
             IAbacatePayAppService abacatePayAppService,
             IValidator<InvoiceRequest> invoiceInsertValidator,
             IValidator<QRCodeRequest> qrCodeRequestValidator,
@@ -38,11 +40,25 @@ namespace ProxyPay.Domain.Services
         {
             _invoiceRepository = invoiceRepository;
             _invoiceItemRepository = invoiceItemRepository;
+            _storeRepository = storeRepository;
             _abacatePayAppService = abacatePayAppService;
             _invoiceInsertValidator = invoiceInsertValidator;
             _qrCodeRequestValidator = qrCodeRequestValidator;
             _mapper = mapper;
             _logger = logger;
+        }
+
+        private async Task<string> ResolveStoreApiKeyAsync(long? storeId)
+        {
+            if (!storeId.HasValue || storeId.Value <= 0)
+                throw new Exception("Invoice has no associated store");
+
+            var store = await _storeRepository.GetByIdAsync(storeId.Value);
+            if (store == null)
+                throw new Exception("Store not found");
+            if (string.IsNullOrWhiteSpace(store.AbacatePayApiKey))
+                throw new Exception("Store has no AbacatePay credential configured");
+            return store.AbacatePayApiKey;
         }
 
         public async Task<InvoiceModel> GetByIdAsync(long invoiceId)
@@ -104,6 +120,8 @@ namespace ProxyPay.Domain.Services
 
             _invoiceInsertValidator.ValidateAndThrow(request);
 
+            var apiKey = await ResolveStoreApiKeyAsync(storeId);
+
             var products = request.Items.Select(i => new BillingProductRequest
             {
                 ExternalId = i.Id,
@@ -131,7 +149,7 @@ namespace ProxyPay.Domain.Services
                 }
             };
 
-            var abacatePayResponse = await _abacatePayAppService.CreateBillingAsync(billingRequest);
+            var abacatePayResponse = await _abacatePayAppService.CreateBillingAsync(billingRequest, apiKey);
 
             if (abacatePayResponse?.Data == null)
                 throw new Exception("Failed to create billing: no response from payment provider");
@@ -159,6 +177,8 @@ namespace ProxyPay.Domain.Services
 
             _qrCodeRequestValidator.ValidateAndThrow(request);
 
+            var apiKey = await ResolveStoreApiKeyAsync(storeId);
+
             var totalAmount = request.Items.Sum(i => (i.Quantity * i.UnitPrice) - i.Discount);
 
             _logger.LogInformation("CreateQRCode: calling AbacatePay API for amount {Amount}", (int)(totalAmount * 100));
@@ -176,7 +196,7 @@ namespace ProxyPay.Domain.Services
                 }
             };
 
-            var abacatePayResponse = await _abacatePayAppService.CreatePixQrCodeAsync(pixRequest);
+            var abacatePayResponse = await _abacatePayAppService.CreatePixQrCodeAsync(pixRequest, apiKey);
 
             if (abacatePayResponse?.Data == null)
                 throw new Exception("Failed to create QR Code: no response from payment provider");
@@ -237,7 +257,8 @@ namespace ProxyPay.Domain.Services
 
             _logger.LogInformation("CheckQRCodeStatus: calling AbacatePay for external code {ExternalCode}", invoice.ExternalCode);
 
-            var abacatePayResponse = await _abacatePayAppService.CheckStatusAsync(invoice.ExternalCode);
+            var apiKey = await ResolveStoreApiKeyAsync(invoice.StoreId);
+            var abacatePayResponse = await _abacatePayAppService.CheckStatusAsync(invoice.ExternalCode, apiKey);
 
             if (abacatePayResponse?.Data == null)
                 throw new Exception("Failed to check QR Code status: no response from payment provider");
@@ -284,7 +305,8 @@ namespace ProxyPay.Domain.Services
 
             _logger.LogInformation("SimulatePayment: calling AbacatePay for external code {ExternalCode}", invoice.ExternalCode);
 
-            var response = await _abacatePayAppService.SimulatePaymentAsync(invoice.ExternalCode);
+            var apiKey = await ResolveStoreApiKeyAsync(invoice.StoreId);
+            var response = await _abacatePayAppService.SimulatePaymentAsync(invoice.ExternalCode, apiKey);
 
             if (response?.Data == null)
                 throw new Exception("Failed to simulate payment: no response from payment provider");

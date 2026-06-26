@@ -17,6 +17,7 @@ public static class GraphQLServiceExtensions
             .AddDiagnosticEventListener<GraphQLErrorLogger>()
             .AddErrorFilter<GraphQLErrorFilter>()
             .AddQueryType<AdminQuery>()
+            .AddType<StoreType>()
             .AddTypeExtension<InvoiceTypeExtension>()
             .AddTypeExtension<TransactionTypeExtension>()
             .ModifyPagingOptions(o =>

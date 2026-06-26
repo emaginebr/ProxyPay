@@ -23,6 +23,7 @@ namespace ProxyPay.Domain.Services
         private readonly IBillingRepository<BillingModel> _billingRepository;
         private readonly IBillingItemRepository<BillingItemModel> _billingItemRepository;
         private readonly ICustomerRepository<CustomerModel> _customerRepository;
+        private readonly IStoreRepository<StoreModel> _storeRepository;
         private readonly IAbacatePayAppService _abacatePayAppService;
         private readonly IInvoiceService _invoiceService;
         private readonly IInvoiceRepository<InvoiceModel> _invoiceRepository;
@@ -34,6 +35,7 @@ namespace ProxyPay.Domain.Services
             IBillingRepository<BillingModel> billingRepository,
             IBillingItemRepository<BillingItemModel> billingItemRepository,
             ICustomerRepository<CustomerModel> customerRepository,
+            IStoreRepository<StoreModel> storeRepository,
             IAbacatePayAppService abacatePayAppService,
             IInvoiceService invoiceService,
             IInvoiceRepository<InvoiceModel> invoiceRepository,
@@ -45,12 +47,23 @@ namespace ProxyPay.Domain.Services
             _billingRepository = billingRepository;
             _billingItemRepository = billingItemRepository;
             _customerRepository = customerRepository;
+            _storeRepository = storeRepository;
             _abacatePayAppService = abacatePayAppService;
             _invoiceService = invoiceService;
             _invoiceRepository = invoiceRepository;
             _billingRequestValidator = billingRequestValidator;
             _mapper = mapper;
             _logger = logger;
+        }
+
+        private async Task<string> ResolveStoreApiKeyAsync(long storeId)
+        {
+            var store = await _storeRepository.GetByIdAsync(storeId);
+            if (store == null)
+                throw new Exception("Store not found");
+            if (string.IsNullOrWhiteSpace(store.AbacatePayApiKey))
+                throw new Exception("Store has no AbacatePay credential configured");
+            return store.AbacatePayApiKey;
         }
 
         public async Task<BillingModel> GetByIdAsync(long billingId)
@@ -86,6 +99,8 @@ namespace ProxyPay.Domain.Services
 
             _billingRequestValidator.ValidateAndThrow(request);
 
+            var apiKey = await ResolveStoreApiKeyAsync(storeId);
+
             var products = request.Items.Select(i => new BillingProductRequest
             {
                 ExternalId = i.BillingItemId > 0 ? i.BillingItemId.ToString() : Guid.NewGuid().ToString("N"),
@@ -113,7 +128,7 @@ namespace ProxyPay.Domain.Services
                 }
             };
 
-            var abacatePayResponse = await _abacatePayAppService.CreateBillingAsync(billingCreateRequest);
+            var abacatePayResponse = await _abacatePayAppService.CreateBillingAsync(billingCreateRequest, apiKey);
 
             if (abacatePayResponse?.Data == null)
                 throw new Exception("Failed to create billing: no response from payment provider");

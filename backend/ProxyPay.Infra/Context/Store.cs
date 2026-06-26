@@ -17,6 +17,8 @@ public partial class Store
 
     public int BillingStrategy { get; set; }
 
+    public string AbacatePayApiKey { get; set; }
+
     public DateTime CreatedAt { get; set; }
 
     public DateTime UpdatedAt { get; set; }

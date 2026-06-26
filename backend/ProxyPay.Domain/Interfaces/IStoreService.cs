@@ -10,6 +10,7 @@ namespace ProxyPay.Domain.Interfaces
         Task<StoreModel> GetByClientIdAsync(string clientId);
         Task<StoreModel> InsertAsync(StoreInsertInfo store, long userId);
         Task<StoreModel> UpdateAsync(StoreUpdateInfo store, long userId);
+        Task UpdateAbacatePayApiKeyAsync(long storeId, string apiKey, long userId);
         Task DeleteAsync(long storeId, long userId);
     }
 }
