@@ -1,21 +1,37 @@
-# ProxyPay — Multi-tenant PIX Payment Orchestration API
+# ProxyPay — Multi-tenant PIX Payment Platform
 
 ![.NET](https://img.shields.io/badge/.NET-8.0-blue)
 ![EF Core](https://img.shields.io/badge/EF%20Core-9.0-purple)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791)
 ![HotChocolate](https://img.shields.io/badge/HotChocolate-14.3-E535AB)
+![React](https://img.shields.io/badge/React-%E2%89%A518-61dafb)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178c6)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 ## Overview
 
-**ProxyPay** is a multi-tenant backend API that orchestrates PIX billings,
+**ProxyPay** is a **monorepo** combining a multi-tenant payment-orchestration
+backend and its React client library:
+
+| Project | Path | Description |
+|---------|------|-------------|
+| **Backend API** | [`backend/`](backend/) | .NET 8 multi-tenant API orchestrating PIX billings, invoices, QR codes and AbacatePay webhooks (REST + GraphQL) |
+| **Frontend library** | [`frontend/`](frontend/) | `proxypay-react` — a React + TypeScript component library (npm package) to consume the API, plus an `example-app/` admin dashboard |
+
+The **backend** is a multi-tenant API that orchestrates PIX billings,
 invoices, QR codes and payment webhooks for merchant stores, acting as a
 thin integration and persistence layer on top of
 [AbacatePay](https://abacatepay.com). Each merchant tenant gets its own
 PostgreSQL database, its own JWT signing key and its own AbacatePay
-webhook URL — isolation is **physical**, not row-level. The project is
-written in **.NET 8** following Clean Architecture and exposes both REST
-and GraphQL endpoints.
+webhook URL — isolation is **physical**, not row-level. It is written in
+**.NET 8** following Clean Architecture and exposes both REST and GraphQL
+endpoints.
+
+The **frontend** (`proxypay-react`) is a lightweight component library that
+provides ready-to-use components for PIX QR Code payments, invoice payments,
+and recurring billing subscriptions — fully typed, shipping as ESM + CJS with
+zero runtime dependencies beyond React. See [`frontend/README.md`](frontend/README.md)
+for the full library reference.
 
 Today the platform runs three active tenants: `emagine` (primary), `monexup`,
 and `fortuno`. New tenants can be added by configuration (no code change)
@@ -92,55 +108,69 @@ accepted under tenant B.
 
 ```
 ProxyPay/
-├── ProxyPay.API/                        # ASP.NET Core host: Controllers, Startup, Middleware, appsettings
-│   ├── Controllers/                     # StoreController, PaymentController, WebhookController, GraphQLController
-│   ├── Middlewares/                     # TenantMiddleware (reads X-Tenant-Id → HttpContext.Items)
-│   ├── Filters/                         # GlobalExceptionFilter
-│   ├── Dockerfile                       # Container image definition
-│   └── appsettings.{Development,Docker,Production}.json
-├── ProxyPay.Application/                # DI bootstrap + multi-tenant plumbing
-│   ├── Startup.cs                       # ConfigureProxyPay extension (DI composition root)
-│   ├── TenantContext.cs                 # ITenantContext + AsyncLocal EnterScope(...)
-│   ├── TenantResolver.cs                # ITenantResolver (ConnectionString, JwtSecret, BucketName per tenant)
-│   ├── TenantCatalog.cs                 # ITenantCatalog (active tenant ids, existence check)
-│   ├── TenantDbContextFactory.cs        # Per-request DbContext with tenant's connection string
-│   ├── NAuthTenantSecretProvider.cs     # Dynamic per-tenant JWT secret for NAuth
-│   └── NAuthTenantProvider.cs           # Tenant provider for outbound NAuth calls
-├── ProxyPay.Domain/                     # Business logic and entities
-│   ├── Models/                          # Store, Customer, Invoice, InvoiceItem, Billing, BillingItem, Transaction
-│   ├── Services/                        # InvoiceService, TransactionService, CustomerService, StoreService, BillingService
-│   ├── Interfaces/                      # ITenantContext, ITenantResolver, ITenantCatalog, service contracts
-│   └── Validators/                      # FluentValidation validators (QRCodeRequestValidator, ...)
-├── ProxyPay.DTO/                        # Shared DTOs and settings
-│   ├── AbacatePay/                      # Wire-format types for AbacatePay integration
-│   ├── Billing/ Invoice/ Customer/      # Request/response DTOs per domain
-│   └── Settings/                        # NAuthSetting, zToolsetting, AbacatePaySetting
-├── ProxyPay.Infra/                      # EF Core, repositories, AppServices
-│   ├── Context/ProxyPayContext.cs       # EF Core DbContext (7 DbSets)
-│   ├── Migrations/                      # EF Core migrations (PostgreSQL)
-│   ├── Repository/                      # 7 repositories (one per aggregate root)
-│   ├── AppServices/                     # AbacatePayAppService (outbound HTTP)
-│   ├── Mappers/                         # AutoMapper profiles
-│   └── UnitOfWork.cs                    # Transaction coordination
-├── ProxyPay.Infra.Interfaces/           # Repository + AppService contracts
-├── ProxyPay.GraphQL/                    # HotChocolate schema
-│   ├── Admin/AdminQuery.cs              # Admin queries (requires [Authorize])
-│   ├── Types/                           # InvoiceTypeExtension, TransactionTypeExtension
-│   ├── GraphQLServiceExtensions.cs      # AddProxyPayGraphQL DI
-│   └── GraphQLErrorLogger.cs            # Diagnostic listener
-├── ProxyPay.Tests/                      # xUnit test project (scaffold)
+├── backend/                             # All .NET code (solution, projects, schema snapshot)
+│   ├── ProxyPay.API/                    # ASP.NET Core host: Controllers, Startup, Middleware, appsettings
+│   │   ├── Controllers/                 # StoreController, PaymentController, WebhookController, GraphQLController
+│   │   ├── Middlewares/                 # TenantMiddleware (reads X-Tenant-Id → HttpContext.Items)
+│   │   ├── Filters/                     # GlobalExceptionFilter
+│   │   ├── Dockerfile                   # Container image definition
+│   │   └── appsettings.{Development,Docker,Production}.json
+│   ├── ProxyPay.Application/            # DI bootstrap + multi-tenant plumbing
+│   │   ├── Startup.cs                   # ConfigureProxyPay extension (DI composition root)
+│   │   ├── TenantContext.cs            # ITenantContext + AsyncLocal EnterScope(...)
+│   │   ├── TenantResolver.cs           # ITenantResolver (ConnectionString, JwtSecret, BucketName per tenant)
+│   │   ├── TenantCatalog.cs            # ITenantCatalog (active tenant ids, existence check)
+│   │   ├── TenantDbContextFactory.cs   # Per-request DbContext with tenant's connection string
+│   │   ├── NAuthTenantSecretProvider.cs # Dynamic per-tenant JWT secret for NAuth
+│   │   └── NAuthTenantProvider.cs      # Tenant provider for outbound NAuth calls
+│   ├── ProxyPay.Domain/                 # Business logic and entities
+│   │   ├── Models/                      # Store, Customer, Invoice, InvoiceItem, Billing, BillingItem, Transaction
+│   │   ├── Services/                    # InvoiceService, TransactionService, CustomerService, StoreService, BillingService
+│   │   ├── Interfaces/                  # ITenantContext, ITenantResolver, ITenantCatalog, service contracts
+│   │   └── Validators/                  # FluentValidation validators (QRCodeRequestValidator, ...)
+│   ├── ProxyPay.DTO/                    # Shared DTOs and settings
+│   │   ├── AbacatePay/                  # Wire-format types for AbacatePay integration
+│   │   ├── Billing/ Invoice/ Customer/  # Request/response DTOs per domain
+│   │   └── Settings/                    # NAuthSetting, zToolsetting, AbacatePaySetting
+│   ├── ProxyPay.Infra/                  # EF Core, repositories, AppServices
+│   │   ├── Context/ProxyPayContext.cs   # EF Core DbContext (7 DbSets)
+│   │   ├── Migrations/                  # EF Core migrations (PostgreSQL)
+│   │   ├── Repository/                  # 7 repositories (one per aggregate root)
+│   │   ├── AppServices/                 # AbacatePayAppService (outbound HTTP)
+│   │   ├── Mappers/                     # AutoMapper profiles
+│   │   └── UnitOfWork.cs                # Transaction coordination
+│   ├── ProxyPay.Infra.Interfaces/       # Repository + AppService contracts
+│   ├── ProxyPay.GraphQL/                # HotChocolate schema
+│   │   ├── Admin/AdminQuery.cs          # Admin queries (requires [Authorize])
+│   │   ├── Types/                       # InvoiceTypeExtension, TransactionTypeExtension
+│   │   ├── GraphQLServiceExtensions.cs  # AddProxyPayGraphQL DI
+│   │   └── GraphQLErrorLogger.cs        # Diagnostic listener
+│   ├── ProxyPay.Tests/                  # xUnit test project (scaffold)
+│   ├── proxypay.sql                     # Raw schema snapshot (complementary to EF migrations)
+│   └── ProxyPay.sln                     # Solution file
+├── frontend/                            # proxypay-react — React component library (npm package)
+│   ├── src/                             # Library source (the published package)
+│   │   ├── types/                       # TypeScript interfaces, enums, component props
+│   │   ├── services/                    # proxyPayService — REST API client
+│   │   ├── contexts/                    # ProxyPayContext provider
+│   │   ├── hooks/                       # useProxyPay consumer hook
+│   │   ├── components/                  # PixPayment, InvoicePayment, BillingPayment
+│   │   └── index.ts                     # Public API surface (all exports)
+│   ├── example-app/                     # Full admin dashboard demo (consumes the lib via file:..)
+│   ├── docs/                            # Frontend docs (API_REFERENCE.md, system-design)
+│   ├── vite.config.ts                   # Library build (lib mode, ESM + CJS + .d.ts)
+│   ├── package.json                     # Package metadata + scripts
+│   └── README.md                        # Library reference (published to npm)
 ├── bruno/                               # Bruno API collection (GraphQL, Payment, Store, Webhook)
-├── docs/                                # Additional documentation + architecture diagram
+├── docs/                                # Backend documentation + architecture diagram
 ├── specs/                               # GitHub spec-kit feature specs (dev tooling)
 ├── .specify/                            # Spec-kit templates, memory and scripts
 ├── .github/workflows/                   # GitHub Actions: deploy-prod, create-release, version-tag
-├── docker-compose.yml                   # Local dev (API + Postgres)
-├── docker-compose-prod.yml              # Production (API only, external DB)
-├── proxypay.sql                         # Raw schema snapshot (complementary to EF migrations)
+├── docker-compose.yml                   # Local dev (API + Postgres) — build context ./backend
+├── docker-compose-prod.yml              # Production (API only, external DB) — build context ./backend
 ├── GitVersion.yml                       # SemVer tooling
-├── ProxyPay.sln                         # Solution file
 ├── LICENSE                              # MIT
-└── README.md                            # This file
+└── README.md                            # This file (unified backend + frontend)
 ```
 
 ---
@@ -311,6 +341,9 @@ psql -U proxypay_user -c "CREATE DATABASE proxypay_fortuno_dev;"
 
 #### 2. Apply EF Core migrations to each tenant
 
+All .NET CLI commands below assume you are inside the `backend/` directory
+(`cd backend`):
+
 ```bash
 # emagine
 dotnet ef database update --project ProxyPay.Infra --startup-project ProxyPay.API \
@@ -328,6 +361,7 @@ dotnet ef database update --project ProxyPay.Infra --startup-project ProxyPay.AP
 #### 3. Build and run the API
 
 ```bash
+cd backend
 dotnet build ProxyPay.sln
 dotnet run --project ProxyPay.API
 ```
@@ -341,9 +375,10 @@ The API will be available on the HTTPS/HTTP ports declared by
 
 ### Running Tests
 
-**All tests:**
+**All tests** (from `backend/`):
 
 ```bash
+cd backend
 dotnet test ProxyPay.sln
 ```
 
@@ -370,6 +405,39 @@ ProxyPay.Tests/
 Integration tests live in `ProxyPay.Tests/Integration/` and are marked
 `[Fact(Skip=...)]` until the WebApplicationFactory harness and per-tenant
 database fixtures are in place.
+
+---
+
+## 🎨 Frontend — `proxypay-react`
+
+The [`frontend/`](frontend/) directory holds the React client library and its
+example app. The library wraps the API surface below into ready-to-use
+components (`PixPayment`, `InvoicePayment`, `BillingPayment`) and a
+`useProxyPay()` hook.
+
+### Library (`frontend/`)
+
+```bash
+cd frontend
+npm install
+npm run build      # → dist/ (ESM + CJS + .d.ts)
+npm run dev        # watch-mode build
+npm run typecheck  # tsc --noEmit
+npm run lint       # eslint src/
+```
+
+### Example app (`frontend/example-app/`)
+
+```bash
+cd frontend/example-app
+cp .env.example .env     # then edit the VITE_* values
+npm install              # links the library via "proxypay-react": "file:.."
+npm run dev              # Vite dev server
+```
+
+> 📖 Full component reference, usage examples and the exported API are documented
+> in [`frontend/README.md`](frontend/README.md). Frontend-specific docs (API
+> reference, architecture diagram) live in [`frontend/docs/`](frontend/docs/).
 
 ---
 
@@ -434,6 +502,7 @@ variables under `bruno/environments/`. Open it in
 ### Development Environment
 
 ```bash
+cd backend
 dotnet run --project ProxyPay.API
 ```
 
@@ -481,7 +550,7 @@ Contributions are welcome — especially around filling in the
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
 3. Follow the project constitution in [`.specify/memory/constitution.md`](.specify/memory/constitution.md) — especially the five non-negotiable principles on stack, naming and multi-tenancy
-4. Run the build and tests (`dotnet build ProxyPay.sln && dotnet test`)
+4. Run the build and tests (`cd backend && dotnet build ProxyPay.sln && dotnet test`)
 5. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 6. Push to the branch (`git push origin feature/AmazingFeature`)
 7. Open a Pull Request

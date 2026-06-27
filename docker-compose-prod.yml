@@ -1,7 +1,7 @@
 services:
   api:
     build:
-      context: .
+      context: ./backend
       dockerfile: ProxyPay.API/Dockerfile
     container_name: proxypay-api
     restart: unless-stopped

@@ -1,0 +1,59 @@
+{
+  "name": "proxypay-react",
+  "version": "0.2.2",
+  "description": "ProxyPay React components and hooks",
+  "author": "Emagine",
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^6.0.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "^5.7.0",
+    "vite": "^8.0.3",
+    "vite-plugin-dts": "^4.5.4"
+  },
+  "keywords": [
+    "proxypay",
+    "react",
+    "payments",
+    "angola"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/emaginebr/ProxyPay",
+    "directory": "frontend"
+  },
+  "sideEffects": false
+}
