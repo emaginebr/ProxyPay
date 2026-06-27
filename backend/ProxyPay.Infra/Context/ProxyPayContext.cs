@@ -56,6 +56,9 @@ public partial class ProxyPayContext : DbContext
             entity.Property(e => e.BillingStrategy)
                 .HasDefaultValue(1)
                 .HasColumnName("billing_strategy");
+            entity.Property(e => e.AbacatePayApiKey)
+                .HasMaxLength(500)
+                .HasColumnName("abacatepay_api_key");
             entity.Property(e => e.CreatedAt)
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_at");

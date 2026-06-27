@@ -25,11 +25,13 @@ namespace ProxyPay.Infra.Mappers
                 .ForMember(d => d.StoreId, opt => opt.Ignore())
                 .ForMember(d => d.ClientId, opt => opt.Ignore())
                 .ForMember(d => d.UserId, opt => opt.Ignore())
+                .ForMember(d => d.AbacatePayApiKey, opt => opt.Ignore())
                 .ForMember(d => d.CreatedAt, opt => opt.Ignore())
                 .ForMember(d => d.UpdatedAt, opt => opt.Ignore());
             CreateMap<StoreUpdateInfo, StoreModel>()
                 .ForMember(d => d.ClientId, opt => opt.Ignore())
                 .ForMember(d => d.UserId, opt => opt.Ignore())
+                .ForMember(d => d.AbacatePayApiKey, opt => opt.Ignore())
                 .ForMember(d => d.CreatedAt, opt => opt.Ignore())
                 .ForMember(d => d.UpdatedAt, opt => opt.Ignore());
 

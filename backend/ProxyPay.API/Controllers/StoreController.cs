@@ -62,6 +62,28 @@ namespace ProxyPay.API.Controllers
             }
         }
 
+        [HttpPut("{storeId}/abacatepay-apikey")]
+        public async Task<ActionResult> SetAbacatePayApiKey(long storeId, [FromBody] StoreApiKeyUpdateInfo info)
+        {
+            var userSession = _userClient.GetUserInSession(HttpContext);
+            if (userSession == null)
+                return Unauthorized();
+
+            try
+            {
+                await _storeService.UpdateAbacatePayApiKeyAsync(storeId, info.ApiKey, userSession.UserId);
+                return NoContent();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpDelete("{storeId}")]
         public async Task<ActionResult> Delete(long storeId)
         {

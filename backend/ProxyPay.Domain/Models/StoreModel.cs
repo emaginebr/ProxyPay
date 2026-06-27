@@ -11,6 +11,7 @@ namespace ProxyPay.Domain.Models
         public string Name { get; set; }
         public string Email { get; set; }
         public BillingStrategyEnum BillingStrategy { get; set; }
+        public string AbacatePayApiKey { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
@@ -41,6 +42,14 @@ namespace ProxyPay.Domain.Models
         public void UpdateBillingStrategy(BillingStrategyEnum strategy)
         {
             BillingStrategy = strategy;
+            MarkUpdated();
+        }
+
+        public void SetAbacatePayApiKey(string apiKey)
+        {
+            if (string.IsNullOrWhiteSpace(apiKey))
+                throw new ArgumentException("AbacatePay API key cannot be empty.", nameof(apiKey));
+            AbacatePayApiKey = apiKey.Trim();
             MarkUpdated();
         }
 

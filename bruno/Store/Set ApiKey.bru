@@ -1,0 +1,25 @@
+meta {
+  name: Set ApiKey
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/store/1/abacatepay-apikey
+  body: json
+  auth: bearer
+}
+
+headers {
+  X-Tenant-Id: emagine
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "apiKey": "abc_dev_replace_with_real_key"
+  }
+}

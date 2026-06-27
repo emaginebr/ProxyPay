@@ -51,4 +51,4 @@ not split across agents.
 
 ## Output Language
 
-English.
+Respond in the language of the request. Match the user's language (e.g., Portuguese → Portuguese, English → English). Keep all code identifiers, file paths, and technical keywords in English regardless of the response language.
