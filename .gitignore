@@ -147,6 +147,8 @@ Thumbs.db
 .env.test.local
 .env.production.local
 appsettings.Development.json
+# Real API test config (copy from appsettings.template.json); the template stays versioned
+appsettings.Test.json
 
 ## SSL certificates
 nginx/certs/
